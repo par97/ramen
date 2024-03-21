@@ -55,6 +55,10 @@ func (ctx *TestContext) HubDynamicClient() *dynamic.DynamicClient {
 	return ctx.Clusters["hub"].DynamicClient
 }
 
+func (ctx *TestContext) HubKubeconfig() string {
+	return ctx.Config.Clusters["hub"].KubeconfigPath
+}
+
 func (ctx *TestContext) C1Client() *kubernetes.Clientset {
 	return ctx.Clusters["c1"].K8sClientSet
 }
@@ -85,4 +89,16 @@ func (ctx *TestContext) GetHubClusters() Clusters {
 	}
 
 	return hubClusters
+}
+
+func (ctx *TestContext) GetManagedClusters() Clusters {
+	managedClusters := make(Clusters)
+
+	for clusterName, cluster := range ctx.Clusters {
+		if !strings.Contains(clusterName, "hub") {
+			managedClusters[clusterName] = cluster
+		}
+	}
+
+	return managedClusters
 }

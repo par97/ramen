@@ -1,6 +1,8 @@
 package deployers
 
 import (
+	"os/exec"
+
 	"github.com/ramendr/ramen/e2e/util"
 	"github.com/ramendr/ramen/e2e/workloads"
 )
@@ -20,14 +22,18 @@ func (s Subscription) Deploy(w workloads.Workload) error {
 	// - Kustomize the Workload; call Workload.Kustomize(StorageType)
 	// Address namespace/label/suffix as needed for various resources
 	s.Ctx.Log.Info("enter Subscription Deploy")
-	w.Kustomize()
-	return nil
+	// w.Kustomize()
+
+	cmd := exec.Command("kubectl", "apply", "-k", w.GetKustomizeURL(), "--kubeconfig="+s.Ctx.HubKubeconfig())
+	return util.RunCommand(cmd)
 }
 
 func (s Subscription) Undeploy(w workloads.Workload) error {
 	// Delete Subscription, Placement, Binding
 	s.Ctx.Log.Info("enter Subscription Undeploy")
-	return nil
+
+	cmd := exec.Command("kubectl", "delete", "-k", w.GetKustomizeURL(), "--kubeconfig="+s.Ctx.HubKubeconfig())
+	return util.RunCommand(cmd)
 }
 
 func (s Subscription) Health(w workloads.Workload) error {
