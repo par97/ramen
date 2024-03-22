@@ -15,14 +15,15 @@ type Deployment struct {
 	Ctx      *util.TestContext
 }
 
-func (w Deployment) GetKustomizeURL() string {
-	return w.RepoURL + "/" + w.Path + "?ref=" + w.Revision
+func (w Deployment) GetResourceURL() string {
+	//by default the timeout is 27s, could fail sometimes
+	return w.RepoURL + "/" + w.Path + "?ref=" + w.Revision + "&timeout=90s"
 }
 
 func (w Deployment) Kustomize() error {
 	w.Ctx.Log.Info("enter Deployment Kustomize")
 	//run: kustomize build "url"
-	cmd := exec.Command("kustomize", "build", w.GetKustomizeURL())
+	cmd := exec.Command("kustomize", "build", w.GetResourceURL())
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	err := cmd.Run()

@@ -30,15 +30,17 @@ func (s *BasicSuite) SetupSuite() error {
 		Ctx:      s.Ctx}
 	s.d = deployers.Subscription{Ctx: s.Ctx}
 	s.r = dractions.DRActions{Ctx: s.Ctx}
-	cmd := exec.Command("kubectl", "apply", "-k", "https://github.com/RamenDR/ocm-ramen-samples.git/channel?ref=main", "--kubeconfig="+s.Ctx.HubKubeconfig())
-	return util.RunCommand(cmd)
+	cmd := exec.Command("kubectl", "apply", "-k", "https://github.com/RamenDR/ocm-ramen-samples.git/channel?ref=main&timeout=90s", "--kubeconfig="+s.Ctx.HubKubeconfig())
+	err, _ := util.RunCommand(cmd)
+	return err
 
 }
 
 func (s *BasicSuite) TeardownSuite() error {
 	s.Ctx.Log.Info("enter TeardownSuite")
-	cmd := exec.Command("kubectl", "delete", "-k", "https://github.com/RamenDR/ocm-ramen-samples.git/channel?ref=main", "--kubeconfig="+s.Ctx.HubKubeconfig())
-	return util.RunCommand(cmd)
+	cmd := exec.Command("kubectl", "delete", "-k", "https://github.com/RamenDR/ocm-ramen-samples.git/channel?ref=main&timeout=90s", "--kubeconfig="+s.Ctx.HubKubeconfig())
+	err, _ := util.RunCommand(cmd)
+	return err
 }
 
 func (s *BasicSuite) Tests() []Test {

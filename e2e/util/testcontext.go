@@ -23,9 +23,10 @@ type Cluster struct {
 type Clusters map[string]*Cluster
 
 type TestContext struct {
-	Config   *Config
-	Clusters Clusters
-	Log      logr.Logger
+	Config          *Config
+	Clusters        Clusters
+	Log             logr.Logger
+	ManagedClusters map[string]string
 }
 
 func GetClientSetFromKubeConfigPath(kubeconfigPath string) (*kubernetes.Clientset, *dynamic.DynamicClient, error) {
@@ -67,12 +68,20 @@ func (ctx *TestContext) C1DynamicClient() *dynamic.DynamicClient {
 	return ctx.Clusters["c1"].DynamicClient
 }
 
+func (ctx *TestContext) C1Kubeconfig() string {
+	return ctx.Config.Clusters["c1"].KubeconfigPath
+}
+
 func (ctx *TestContext) C2Client() *kubernetes.Clientset {
 	return ctx.Clusters["c2"].K8sClientSet
 }
 
 func (ctx *TestContext) C2DynamicClient() *dynamic.DynamicClient {
 	return ctx.Clusters["c2"].DynamicClient
+}
+
+func (ctx *TestContext) C2Kubeconfig() string {
+	return ctx.Config.Clusters["c2"].KubeconfigPath
 }
 
 func (ctx *TestContext) GetClusters() Clusters {

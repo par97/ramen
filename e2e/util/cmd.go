@@ -3,10 +3,11 @@ package util
 import (
 	"bytes"
 	"fmt"
+	"os"
 	"os/exec"
 )
 
-func RunCommand(cmd *exec.Cmd) error {
+func RunCommand(cmd *exec.Cmd) (error, string) {
 
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
@@ -18,11 +19,13 @@ func RunCommand(cmd *exec.Cmd) error {
 		fmt.Println("error of: " + cmd.String())
 		fmt.Println(errStr)
 		fmt.Println("============")
-		return fmt.Errorf("command failed")
+		return fmt.Errorf("command failed"), errStr
 	}
-	fmt.Println("============")
-	fmt.Println("output of: " + cmd.String())
-	fmt.Println(outStr)
-	fmt.Println("============")
-	return nil
+	if os.Getenv("e2e_debug") == "true" {
+		fmt.Println("============")
+		fmt.Println("output of: " + cmd.String())
+		fmt.Println(outStr)
+		fmt.Println("============")
+	}
+	return nil, outStr
 }
