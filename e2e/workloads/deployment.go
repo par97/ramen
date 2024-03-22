@@ -9,10 +9,14 @@ import (
 )
 
 type Deployment struct {
-	RepoURL  string // Possibly all this is part of Workload than each implementation of the interfaces?
-	Path     string
-	Revision string
-	Ctx      *util.TestContext
+	RepoURL   string // Possibly all this is part of Workload than each implementation of the interfaces?
+	Path      string
+	Revision  string
+	Ctx       *util.TestContext
+	Name      string // deployment-rbd
+	Namespace string // deployment-rbd
+	Dr_policy string // dr-policy
+	Pvc_label string // busybox
 }
 
 func (w Deployment) GetResourceURL() string {

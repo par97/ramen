@@ -15,17 +15,17 @@ func RunCommand(cmd *exec.Cmd) (error, string) {
 	err := cmd.Run()
 	outStr, errStr := stdout.String(), stderr.String()
 	if err != nil {
-		fmt.Println("============")
-		fmt.Println("error of: " + cmd.String())
+		fmt.Println("====== cmd start ======")
+		fmt.Println("cmd error: " + cmd.String())
 		fmt.Println(errStr)
-		fmt.Println("============")
+		fmt.Println("====== cmd end ======")
 		return fmt.Errorf("command failed"), errStr
 	}
 	if os.Getenv("e2e_debug") == "true" {
-		fmt.Println("============")
-		fmt.Println("output of: " + cmd.String())
+		fmt.Println("====== cmd start ======")
+		fmt.Println("cmd out: " + cmd.String())
 		fmt.Println(outStr)
-		fmt.Println("============")
+		fmt.Println("====== cmd end ======")
 	}
 	return nil, outStr
 }

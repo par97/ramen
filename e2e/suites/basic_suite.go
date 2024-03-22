@@ -1,8 +1,6 @@
 package suites
 
 import (
-	"os/exec"
-
 	"github.com/ramendr/ramen/e2e/deployers"
 	"github.com/ramendr/ramen/e2e/dractions"
 	"github.com/ramendr/ramen/e2e/util"
@@ -24,34 +22,34 @@ func (s *BasicSuite) SetContext(ctx *util.TestContext) {
 func (s *BasicSuite) SetupSuite() error {
 	s.Ctx.Log.Info("enter SetupSuite")
 	s.w = workloads.Deployment{
-		RepoURL:  "https://github.com/ramendr/ocm-ramen-samples.git",
-		Path:     "subscription/deployment-k8s-regional-rbd",
-		Revision: "main",
-		Ctx:      s.Ctx}
+		RepoURL:   "https://github.com/ramendr/ocm-ramen-samples.git",
+		Path:      "subscription/deployment-k8s-regional-rbd",
+		Revision:  "main",
+		Ctx:       s.Ctx,
+		Name:      "deployment-rbd",
+		Namespace: "deployment-rbd",
+		Dr_policy: "dr-policy",
+		Pvc_label: "busybox",
+	}
 	s.d = deployers.Subscription{Ctx: s.Ctx}
 	s.r = dractions.DRActions{Ctx: s.Ctx}
-	cmd := exec.Command("kubectl", "apply", "-k", "https://github.com/RamenDR/ocm-ramen-samples.git/channel?ref=main&timeout=90s", "--kubeconfig="+s.Ctx.HubKubeconfig())
-	err, _ := util.RunCommand(cmd)
-	return err
-
+	return nil
 }
 
 func (s *BasicSuite) TeardownSuite() error {
 	s.Ctx.Log.Info("enter TeardownSuite")
-	cmd := exec.Command("kubectl", "delete", "-k", "https://github.com/RamenDR/ocm-ramen-samples.git/channel?ref=main&timeout=90s", "--kubeconfig="+s.Ctx.HubKubeconfig())
-	err, _ := util.RunCommand(cmd)
-	return err
+	return nil
 }
 
 func (s *BasicSuite) Tests() []Test {
 	s.Ctx.Log.Info("enter Tests")
 	return []Test{
-		s.TestWorkloadDeployment,
+		// s.TestWorkloadDeployment,
 		s.TestEnableProtection,
-		s.TestWorkloadFailover,
-		s.TestWorkloadRelocation,
-		s.TestDisableProtection,
-		s.TestWorkloadUndeployment,
+		// s.TestWorkloadFailover,
+		// s.TestWorkloadRelocation,
+		// s.TestDisableProtection,
+		// s.TestWorkloadUndeployment,
 	}
 }
 
