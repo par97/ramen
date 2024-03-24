@@ -34,14 +34,14 @@ func (r DRActions) EnableProtection(w workloads.Workload, d deployers.Deployer) 
 		client := r.Ctx.HubDynamicClient()
 
 		resource := schema.GroupVersionResource{Group: "cluster.open-cluster-management.io", Version: "v1beta1", Resource: "placements"}
-		resp, err := client.Resource(resource).Namespace("deployment-rbd").Get(context.TODO(), "placement", metav1.GetOptions{})
+		unstr, err := client.Resource(resource).Namespace("deployment-rbd").Get(context.TODO(), "placement", metav1.GetOptions{})
 		if err != nil {
 			fmt.Printf("err: %v\n", err)
 			return fmt.Errorf("could not get placement")
 		}
 
 		placement := clusterv1beta1.Placement{}
-		err = runtime.DefaultUnstructuredConverter.FromUnstructured(resp.UnstructuredContent(), &placement)
+		err = runtime.DefaultUnstructuredConverter.FromUnstructured(unstr.UnstructuredContent(), &placement)
 		if err != nil {
 			fmt.Println(err)
 			return fmt.Errorf("could not FromUnstructured")
@@ -49,13 +49,13 @@ func (r DRActions) EnableProtection(w workloads.Workload, d deployers.Deployer) 
 
 		placement.Annotations[OCM_SCHEDULING_DISABLE] = "true"
 
-		mapCR, err := runtime.DefaultUnstructuredConverter.ToUnstructured(&placement)
+		tempMap, err := runtime.DefaultUnstructuredConverter.ToUnstructured(&placement)
 		if err != nil {
 			fmt.Println(err)
 			return fmt.Errorf("could not ToUnstructured")
 		}
-		unstructuredCR := &unstructured.Unstructured{Object: mapCR}
-		_, err = client.Resource(resource).Namespace("deployment-rbd").Update(context.TODO(), unstructuredCR, metav1.UpdateOptions{})
+		unstr = &unstructured.Unstructured{Object: tempMap}
+		_, err = client.Resource(resource).Namespace("deployment-rbd").Update(context.TODO(), unstr, metav1.UpdateOptions{})
 		if err != nil {
 			fmt.Println(err)
 			return fmt.Errorf("could not update placment")
