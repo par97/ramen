@@ -2,7 +2,6 @@ package dractions
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	"github.com/ramendr/ramen/e2e/deployers"
@@ -40,21 +39,14 @@ func (r DRActions) EnableProtection(w workloads.Workload, d deployers.Deployer) 
 			fmt.Printf("err: %v\n", err)
 			return fmt.Errorf("could not get placement")
 		}
-		respJson, err := resp.MarshalJSON()
-		if err != nil {
-			fmt.Println(err)
-			return fmt.Errorf("could not marshaljson")
-		}
+
 		placement := clusterv1beta1.Placement{}
-		err = json.Unmarshal(respJson, &placement)
+		err = runtime.DefaultUnstructuredConverter.FromUnstructured(resp.UnstructuredContent(), &placement)
 		if err != nil {
 			fmt.Println(err)
-			return fmt.Errorf("could not unmarshaljson")
+			return fmt.Errorf("could not FromUnstructured")
 		}
-		// for key, s := range placement.Annotations {
-		// 	fmt.Printf("key: %v\n", key)
-		// 	fmt.Printf("s: %v\n", s)
-		// }
+
 		placement.Annotations[OCM_SCHEDULING_DISABLE] = "true"
 
 		mapCR, err := runtime.DefaultUnstructuredConverter.ToUnstructured(&placement)
