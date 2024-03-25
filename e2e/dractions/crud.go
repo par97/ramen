@@ -25,7 +25,7 @@ func getPlacement(client *dynamic.DynamicClient, namespace, name string) (*clust
 	placement := clusterv1beta1.Placement{}
 	err = runtime.DefaultUnstructuredConverter.FromUnstructured(unstr.UnstructuredContent(), &placement)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Printf("err: %v\n", err)
 		return nil, fmt.Errorf("could not FromUnstructured in func getPlacment")
 	}
 
@@ -36,7 +36,7 @@ func updatePlacement(client *dynamic.DynamicClient, placement *clusterv1beta1.Pl
 
 	tempMap, err := runtime.DefaultUnstructuredConverter.ToUnstructured(placement)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Printf("err: %v\n", err)
 		return fmt.Errorf("could not ToUnstructured")
 	}
 
@@ -44,7 +44,7 @@ func updatePlacement(client *dynamic.DynamicClient, placement *clusterv1beta1.Pl
 	resource := schema.GroupVersionResource{Group: "cluster.open-cluster-management.io", Version: "v1beta1", Resource: "placements"}
 	_, err = client.Resource(resource).Namespace(placement.GetNamespace()).Update(context.TODO(), unstr, metav1.UpdateOptions{})
 	if err != nil {
-		fmt.Println(err)
+		fmt.Printf("err: %v\n", err)
 		return fmt.Errorf("could not update placment")
 	}
 
@@ -62,7 +62,7 @@ func getPlacementDecision(client *dynamic.DynamicClient, namespace, name string)
 	placementDecision := clusterv1beta1.PlacementDecision{}
 	err = runtime.DefaultUnstructuredConverter.FromUnstructured(unstr.UnstructuredContent(), &placementDecision)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Printf("err: %v\n", err)
 		return nil, fmt.Errorf("could not FromUnstructured in func getPlacementDecision")
 	}
 
@@ -80,7 +80,7 @@ func getDRPlacementControl(client *dynamic.DynamicClient, namespace, name string
 	drpc := ramen.DRPlacementControl{}
 	err = runtime.DefaultUnstructuredConverter.FromUnstructured(unstr.UnstructuredContent(), &drpc)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Printf("err: %v\n", err)
 		return nil, fmt.Errorf("could not FromUnstructured in func getDRPlacementControl")
 	}
 

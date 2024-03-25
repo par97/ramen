@@ -112,7 +112,7 @@ func (r DRActions) EnableProtection(w workloads.Workload, d deployers.Deployer) 
 
 		tempMap, err := runtime.DefaultUnstructuredConverter.ToUnstructured(drpc)
 		if err != nil {
-			fmt.Println(err)
+			fmt.Printf("err: %v\n", err)
 			return fmt.Errorf("could not ToUnstructured")
 		}
 
@@ -122,7 +122,7 @@ func (r DRActions) EnableProtection(w workloads.Workload, d deployers.Deployer) 
 		_, err = client.Resource(resource).Namespace(namespace).Create(context.Background(), unstr, metav1.CreateOptions{})
 		if err != nil {
 			if !k8serrors.IsAlreadyExists(err) {
-				fmt.Println(err)
+				fmt.Printf("err: %v\n", err)
 				return fmt.Errorf("could not create drplacementcontrol")
 			}
 			r.Ctx.Log.Info("DRPC " + drpcName + " already Exists")
