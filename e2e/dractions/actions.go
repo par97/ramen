@@ -3,6 +3,7 @@ package dractions
 import (
 	"context"
 	"fmt"
+	"time"
 
 	ramen "github.com/ramendr/ramen/api/v1alpha1"
 	"github.com/ramendr/ramen/e2e/deployers"
@@ -58,21 +59,29 @@ func (r DRActions) EnableProtection(w workloads.Workload, d deployers.Deployer) 
 		}
 
 		r.Ctx.Log.Info("get placement and wait for PlacementSatisfied")
-		// L1
-		placement, err = getPlacement(client, namespace, placementName)
-		if err != nil {
-			return err
-		}
+
 		placementDecisionName := ""
-		for _, cond := range placement.Status.Conditions {
-			if cond.Type == "PlacementSatisfied" && cond.Status == "True" {
-				placementDecisionName = placement.Status.DecisionGroups[0].Decisions[0]
+		retryCount := 1
+		sleepTime := time.Second * 60
+		for i := 0; i <= retryCount; i++ {
+			placement, err = getPlacement(client, namespace, placementName)
+			if err != nil {
+				return err
 			}
-		}
-		if placementDecisionName == "" {
-			r.Ctx.Log.Info("can not find placement decision")
-			// if not timeout, go to L1
-			// else return error
+
+			for _, cond := range placement.Status.Conditions {
+				if cond.Type == "PlacementSatisfied" && cond.Status == "True" {
+					placementDecisionName = placement.Status.DecisionGroups[0].Decisions[0]
+				}
+			}
+			if placementDecisionName == "" {
+				r.Ctx.Log.Info(fmt.Sprintf("can not find placement decision, sleep and retry, loop: %v", i))
+				if i == retryCount {
+					return fmt.Errorf("could not find placement decision before timeout")
+				}
+				time.Sleep(sleepTime)
+				continue
+			}
 		}
 
 		r.Ctx.Log.Info("get placement decision")
