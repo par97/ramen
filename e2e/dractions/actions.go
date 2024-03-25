@@ -9,12 +9,11 @@ import (
 	"github.com/ramendr/ramen/e2e/util"
 	"github.com/ramendr/ramen/e2e/workloads"
 	v1 "k8s.io/api/core/v1"
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/client-go/dynamic"
-	clusterv1beta1 "open-cluster-management.io/api/cluster/v1beta1"
 )
 
 type DRActions struct {
@@ -23,62 +22,6 @@ type DRActions struct {
 
 const OCM_SCHEDULING_DISABLE = "cluster.open-cluster-management.io/experimental-scheduling-disable"
 
-func getPlacement(client *dynamic.DynamicClient, namespace, name string) (*clusterv1beta1.Placement, error) {
-
-	resource := schema.GroupVersionResource{Group: "cluster.open-cluster-management.io", Version: "v1beta1", Resource: "placements"}
-	unstr, err := client.Resource(resource).Namespace(namespace).Get(context.Background(), name, metav1.GetOptions{})
-	if err != nil {
-		fmt.Printf("err: %v\n", err)
-		return nil, fmt.Errorf("could not get placement CR")
-	}
-
-	placement := clusterv1beta1.Placement{}
-	err = runtime.DefaultUnstructuredConverter.FromUnstructured(unstr.UnstructuredContent(), &placement)
-	if err != nil {
-		fmt.Println(err)
-		return nil, fmt.Errorf("could not FromUnstructured in func getPlacment")
-	}
-
-	return &placement, nil
-}
-
-func updatePlacement(client *dynamic.DynamicClient, placement *clusterv1beta1.Placement) error {
-
-	tempMap, err := runtime.DefaultUnstructuredConverter.ToUnstructured(placement)
-	if err != nil {
-		fmt.Println(err)
-		return fmt.Errorf("could not ToUnstructured")
-	}
-
-	unstr := &unstructured.Unstructured{Object: tempMap}
-	resource := schema.GroupVersionResource{Group: "cluster.open-cluster-management.io", Version: "v1beta1", Resource: "placements"}
-	_, err = client.Resource(resource).Namespace(placement.GetNamespace()).Update(context.TODO(), unstr, metav1.UpdateOptions{})
-	if err != nil {
-		fmt.Println(err)
-		return fmt.Errorf("could not update placment")
-	}
-
-	return nil
-}
-
-func getPlacementDecision(client *dynamic.DynamicClient, namespace, name string) (*clusterv1beta1.PlacementDecision, error) {
-	resource := schema.GroupVersionResource{Group: "cluster.open-cluster-management.io", Version: "v1beta1", Resource: "placementdecisions"}
-	unstr, err := client.Resource(resource).Namespace(namespace).Get(context.Background(), name, metav1.GetOptions{})
-	if err != nil {
-		fmt.Printf("err: %v\n", err)
-		return nil, fmt.Errorf("could not get placementDecision CR")
-	}
-
-	placementDecision := clusterv1beta1.PlacementDecision{}
-	err = runtime.DefaultUnstructuredConverter.FromUnstructured(unstr.UnstructuredContent(), &placementDecision)
-	if err != nil {
-		fmt.Println(err)
-		return nil, fmt.Errorf("could not FromUnstructured in func getPlacementDecision")
-	}
-
-	return &placementDecision, nil
-}
-
 func (r DRActions) EnableProtection(w workloads.Workload, d deployers.Deployer) error {
 	// If AppSet/Subscription, find Placement
 	// Determine DRPolicy
@@ -86,7 +29,7 @@ func (r DRActions) EnableProtection(w workloads.Workload, d deployers.Deployer) 
 	// Determine PVC label selector
 	// Determine KubeObjectProtection requirements if Imperative (?)
 	// Create DRPC, in desired namespace
-	r.Ctx.Log.Info("enter dractions EnableProtection")
+	r.Ctx.Log.Info("enter DRActions EnableProtection")
 
 	_, ok := d.(deployers.Subscription)
 	if ok {
@@ -97,8 +40,10 @@ func (r DRActions) EnableProtection(w workloads.Workload, d deployers.Deployer) 
 		pvcLabel := "busybox"
 		placementName := "placement"
 		placementKind := "placement"
+		drpcName := name + "-drpc"
 		client := r.Ctx.HubDynamicClient()
 
+		r.Ctx.Log.Info("get placement")
 		placement, err := getPlacement(client, namespace, placementName)
 		if err != nil {
 			return err
@@ -106,11 +51,13 @@ func (r DRActions) EnableProtection(w workloads.Workload, d deployers.Deployer) 
 
 		placement.Annotations[OCM_SCHEDULING_DISABLE] = "true"
 
+		r.Ctx.Log.Info("update placement")
 		err = updatePlacement(client, placement)
 		if err != nil {
 			return err
 		}
 
+		r.Ctx.Log.Info("get placement and wait for PlacementSatisfied")
 		// L1
 		placement, err = getPlacement(client, namespace, placementName)
 		if err != nil {
@@ -120,31 +67,31 @@ func (r DRActions) EnableProtection(w workloads.Workload, d deployers.Deployer) 
 		for _, cond := range placement.Status.Conditions {
 			if cond.Type == "PlacementSatisfied" && cond.Status == "True" {
 				placementDecisionName = placement.Status.DecisionGroups[0].Decisions[0]
-				// kubectl.get(
-				// 	"placementdecisions",
-				// 	f"--selector=cluster.open-cluster-management.io/placement={placement_name}",
-				// 	f"--namespace={config['namespace']}",
-				// 	"--output=jsonpath={.items[0].status.decisions[0].clusterName}",
-				// 	context=env["hub"],
 			}
 		}
 		if placementDecisionName == "" {
-			fmt.Println("can not find placement decision")
+			r.Ctx.Log.Info("can not find placement decision")
 			// if not timeout, go to L1
 			// else return error
 		}
 
+		r.Ctx.Log.Info("get placement decision")
 		placementDecision, err := getPlacementDecision(client, namespace, placementDecisionName)
 		if err != nil {
 			return err
 		}
 
 		clusterName := placementDecision.Status.Decisions[0].ClusterName
-		fmt.Printf("clusterName: %v\n", clusterName)
+		r.Ctx.Log.Info("placement decision clusterName: " + clusterName)
 
+		r.Ctx.Log.Info("create drpc")
 		drpc := &ramen.DRPlacementControl{
+			TypeMeta: metav1.TypeMeta{
+				Kind:       "DRPlacementControl",
+				APIVersion: "ramendr.openshift.io/v1alpha1",
+			},
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      name + "-drpc",
+				Name:      drpcName,
 				Namespace: namespace,
 				Labels:    map[string]string{"app": name},
 			},
@@ -170,12 +117,23 @@ func (r DRActions) EnableProtection(w workloads.Workload, d deployers.Deployer) 
 		}
 
 		unstr := &unstructured.Unstructured{Object: tempMap}
-		resource := schema.GroupVersionResource{Group: "cluster.open-cluster-management.io", Version: "v1beta1", Resource: "drplacementcontrols"}
-		_, err = client.Resource(resource).Namespace(drpc.GetNamespace()).Update(context.TODO(), unstr, metav1.UpdateOptions{})
+		resource := schema.GroupVersionResource{Group: "ramendr.openshift.io", Version: "v1alpha1", Resource: "drplacementcontrols"}
+
+		_, err = client.Resource(resource).Namespace(namespace).Create(context.Background(), unstr, metav1.CreateOptions{})
 		if err != nil {
-			fmt.Println(err)
-			return fmt.Errorf("could not update drplacementcontrol")
+			if !k8serrors.IsAlreadyExists(err) {
+				fmt.Println(err)
+				return fmt.Errorf("could not create drplacementcontrol")
+			}
+			r.Ctx.Log.Info("DRPC " + drpcName + " already Exists")
+
 		}
+
+		// drpc, err = getDRPlacementControl(client, namespace, drpcName)
+		// if err != nil {
+		// 	return err
+		// }
+		// fmt.Printf("drpc.Name: %v\n", drpc.Name)
 
 		return nil
 

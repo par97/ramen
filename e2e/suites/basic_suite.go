@@ -15,12 +15,12 @@ type BasicSuite struct {
 }
 
 func (s *BasicSuite) SetContext(ctx *util.TestContext) {
-	ctx.Log.Info("enter SetContext")
+	ctx.Log.Info("enter BasicSuite SetContext")
 	s.Ctx = ctx
 }
 
 func (s *BasicSuite) SetupSuite() error {
-	s.Ctx.Log.Info("enter SetupSuite")
+	s.Ctx.Log.Info("enter BasicSuite SetupSuite")
 	s.w = workloads.Deployment{
 		RepoURL:   "https://github.com/ramendr/ocm-ramen-samples.git",
 		Path:      "subscription/deployment-k8s-regional-rbd",
@@ -37,12 +37,12 @@ func (s *BasicSuite) SetupSuite() error {
 }
 
 func (s *BasicSuite) TeardownSuite() error {
-	s.Ctx.Log.Info("enter TeardownSuite")
+	s.Ctx.Log.Info("enter BasicSuite TeardownSuite")
 	return nil
 }
 
 func (s *BasicSuite) Tests() []Test {
-	s.Ctx.Log.Info("enter Tests")
+	s.Ctx.Log.Info("enter BasicSuite Tests")
 	return []Test{
 		// s.TestWorkloadDeployment,
 		s.TestEnableProtection,
@@ -54,31 +54,31 @@ func (s *BasicSuite) Tests() []Test {
 }
 
 func (s *BasicSuite) TestWorkloadDeployment() error {
-	s.Ctx.Log.Info("enter TestWorkloadDeployment")
+	s.Ctx.Log.Info("enter BasicSuite TestWorkloadDeployment")
 	return s.d.Deploy(s.w)
 }
 
 func (s *BasicSuite) TestEnableProtection() error {
-	s.Ctx.Log.Info("enter TestEnableProtection")
+	s.Ctx.Log.Info("enter BasicSuite TestEnableProtection")
 	return s.r.EnableProtection(s.w, s.d)
 }
 
 func (s *BasicSuite) TestWorkloadFailover() error {
-	s.Ctx.Log.Info("enter TestWorkloadFailover")
+	s.Ctx.Log.Info("enter BasicSuite TestWorkloadFailover")
 	return s.r.Failover(s.w, s.d)
 }
 
 func (s *BasicSuite) TestWorkloadRelocation() error {
-	s.Ctx.Log.Info("enter TestWorkloadRelocation")
+	s.Ctx.Log.Info("enter BasicSuite TestWorkloadRelocation")
 	return s.r.Relocate(s.w, s.d)
 }
 
 func (s *BasicSuite) TestDisableProtection() error {
-	s.Ctx.Log.Info("enter TestDisableProtection")
+	s.Ctx.Log.Info("enter BasicSuite TestDisableProtection")
 	return nil
 }
 
 func (s *BasicSuite) TestWorkloadUndeployment() error {
-	s.Ctx.Log.Info("enter TestWorkloadUndeployment")
+	s.Ctx.Log.Info("enter BasicSuite TestWorkloadUndeployment")
 	return s.d.Undeploy(s.w)
 }

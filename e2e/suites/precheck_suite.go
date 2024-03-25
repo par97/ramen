@@ -21,22 +21,22 @@ type PrecheckSuite struct {
 }
 
 func (s *PrecheckSuite) SetContext(ctx *util.TestContext) {
-	ctx.Log.Info("enter SetContext")
+	ctx.Log.Info("enter PrecheckSuite SetContext")
 	s.ctx = ctx
 }
 
 func (s *PrecheckSuite) SetupSuite() error {
-	s.ctx.Log.Info("enter SetupSuite")
+	s.ctx.Log.Info("enter PrecheckSuite SetupSuite")
 	return nil
 }
 
 func (s *PrecheckSuite) TeardownSuite() error {
-	s.ctx.Log.Info("enter TeardownSuite")
+	s.ctx.Log.Info("enter PrecheckSuite TeardownSuite")
 	return nil
 }
 
 func (s *PrecheckSuite) Tests() []Test {
-	s.ctx.Log.Info("enter Tests")
+	s.ctx.Log.Info("enter PrecheckSuite Tests")
 	return []Test{
 		s.TestRamenHubOperatorStatus,
 		s.TestRamenSpokeOperatorStatus,
@@ -46,7 +46,7 @@ func (s *PrecheckSuite) Tests() []Test {
 }
 
 func (s *PrecheckSuite) TestRamenHubOperatorStatus() error {
-	s.ctx.Log.Info("enter Running TestRamenHubOperatorStatus")
+	s.ctx.Log.Info("enter PrecheckSuite TestRamenHubOperatorStatus")
 
 	isRunning, podName, err := CheckRamenHubPodRunningStatus(s.ctx.HubClient())
 	if err != nil {
@@ -64,7 +64,7 @@ func (s *PrecheckSuite) TestRamenHubOperatorStatus() error {
 }
 
 func (s *PrecheckSuite) TestRamenSpokeOperatorStatus() error {
-	s.ctx.Log.Info("enter Running TestRamenSpokeOperatorStatus")
+	s.ctx.Log.Info("enter PrecheckSuite TestRamenSpokeOperatorStatus")
 
 	isRunning, podName, err := CheckRamenSpokePodRunningStatus(s.ctx.C1Client())
 	if err != nil {
@@ -171,7 +171,7 @@ func CheckRamenSpokePodRunningStatus(k8sClient *kubernetes.Clientset) (bool, str
 }
 
 func (s *PrecheckSuite) TestCephClusterStatus() error {
-	s.ctx.Log.Info("enter Running TestCephClusterStatus")
+	s.ctx.Log.Info("enter PrecheckSuite TestCephClusterStatus")
 
 	c1DynamicClient := s.ctx.C1DynamicClient()
 
