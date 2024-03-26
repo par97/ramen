@@ -33,6 +33,7 @@ func (s *BasicSuite) SetupSuite() error {
 	// }
 	deployment := &workloads.Deployment{}
 	deployment.Init()
+	deployment.Ctx = s.Ctx
 	s.w = deployment
 	s.d = deployers.Subscription{Ctx: s.Ctx}
 	s.r = dractions.DRActions{Ctx: s.Ctx}

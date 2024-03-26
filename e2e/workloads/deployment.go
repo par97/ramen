@@ -12,11 +12,12 @@ type Deployment struct {
 	RepoURL       string // Possibly all this is part of Workload than each implementation of the interfaces?
 	Path          string
 	Revision      string
-	Ctx           *util.TestContext
 	Name          string // deployment-rbd
 	Namespace     string // deployment-rbd
 	PVCLabel      string // busybox
 	PlacementName string
+
+	Ctx *util.TestContext
 }
 
 func (w *Deployment) Init() {
