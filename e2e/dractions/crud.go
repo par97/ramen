@@ -88,6 +88,43 @@ func getDRPlacementControl(client *dynamic.DynamicClient, namespace, name string
 	return &drpc, nil
 }
 
+func updatePlacementControl(client *dynamic.DynamicClient, placementcontrol *ramen.DRPlacementControl) error {
+
+	tempMap, err := runtime.DefaultUnstructuredConverter.ToUnstructured(placementcontrol)
+	if err != nil {
+		fmt.Printf("err: %v\n", err)
+		return fmt.Errorf("could not ToUnstructured")
+	}
+
+	unstr := &unstructured.Unstructured{Object: tempMap}
+	resource := schema.GroupVersionResource{Group: "ramendr.openshift.io", Version: "v1alpha1", Resource: "drplacementcontrols"}
+	_, err = client.Resource(resource).Namespace(placementcontrol.GetNamespace()).Update(context.TODO(), unstr, metav1.UpdateOptions{})
+	if err != nil {
+		fmt.Printf("err: %v\n", err)
+		return fmt.Errorf("could not update placmentcontrol")
+	}
+
+	return nil
+}
+
+func getDRPolicy(client *dynamic.DynamicClient, name string) (*ramen.DRPolicy, error) {
+	resource := schema.GroupVersionResource{Group: "ramendr.openshift.io", Version: "v1alpha1", Resource: "drpolicies"}
+	unstr, err := client.Resource(resource).Get(context.Background(), name, metav1.GetOptions{})
+	if err != nil {
+		fmt.Printf("err: %v\n", err)
+		return nil, fmt.Errorf("could not get drpolicies")
+	}
+
+	drpolicy := ramen.DRPolicy{}
+	err = runtime.DefaultUnstructuredConverter.FromUnstructured(unstr.UnstructuredContent(), &drpolicy)
+	if err != nil {
+		fmt.Printf("err: %v\n", err)
+		return nil, fmt.Errorf("could not FromUnstructured in func getDRPolicy")
+	}
+
+	return &drpolicy, nil
+}
+
 func deleteDRPlacementControl(client *dynamic.DynamicClient, namespace, name string) error {
 
 	resource := schema.GroupVersionResource{Group: "ramendr.openshift.io", Version: "v1alpha1", Resource: "drplacementcontrols"}

@@ -15,6 +15,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/client-go/dynamic"
 	"open-cluster-management.io/api/cluster/v1beta1"
 )
 
@@ -224,12 +225,138 @@ func (r DRActions) DisableProtection(w workloads.Workload, d deployers.Deployer)
 	return nil
 }
 
+func (r DRActions) isDRPCReady(client *dynamic.DynamicClient, namespace string, drpcName string) (bool, error) {
+	r.Ctx.Log.Info("enter isDRPCReady")
+
+	retryCount := 5
+	sleepTime := time.Second * 60
+	for i := 0; i <= retryCount; i++ {
+		ready := true
+		drpc, err := getDRPlacementControl(client, namespace, drpcName)
+		if err != nil {
+			fmt.Printf("err: %v\n", err)
+			return false, err
+		}
+
+		for _, cond := range drpc.Status.Conditions {
+			if cond.Type == "Available" && cond.Status != "True" {
+				r.Ctx.Log.Info("drpc status Available is not True")
+				ready = false
+			}
+			if cond.Type == "PeerReady" && cond.Status != "True" {
+				r.Ctx.Log.Info("drpc status PeerReady is not True")
+				ready = false
+			}
+		}
+		if ready {
+			if drpc.Status.LastGroupSyncTime == nil {
+				r.Ctx.Log.Info("drpc status LastGroupSyncTime is nil")
+				ready = false
+			}
+		}
+		if !ready {
+			r.Ctx.Log.Info(fmt.Sprintf("drpc status is not ready yet, sleep and retry, loop: %v", i))
+			if i == retryCount {
+				return false, fmt.Errorf("drpc status is not ready yet before timeout")
+			}
+			time.Sleep(sleepTime)
+			continue
+		}
+
+		r.Ctx.Log.Info(fmt.Sprintf("drpc status is ready, loop: %v", i))
+		return true, nil
+	}
+
+	return false, nil
+}
+
+func (r DRActions) waitDRPCPhase(client *dynamic.DynamicClient, namespace string, drpcName string, phase string) error {
+	r.Ctx.Log.Info("enter waitDRPCPhase")
+
+	retryCount := 10
+	sleepTime := time.Second * 60
+	for i := 0; i <= retryCount; i++ {
+		drpc, err := getDRPlacementControl(client, namespace, drpcName)
+		if err != nil {
+			fmt.Printf("err: %v\n", err)
+			return err
+		}
+
+		nowPhase := string(drpc.Status.Phase)
+		r.Ctx.Log.Info("now drpc phase is " + nowPhase + " but expecting " + phase)
+
+		if nowPhase == phase {
+			return nil
+		} else {
+			time.Sleep(sleepTime)
+			continue
+		}
+	}
+
+	return fmt.Errorf("failed to wait phase of drpc to become " + phase)
+}
+
 func (r DRActions) Failover(w workloads.Workload, d deployers.Deployer) error {
 	// Determine DRPC
 	// Check Placement
 	// Failover to alternate in DRPolicy as the failoverCluster
 	// Update DRPC
 	r.Ctx.Log.Info("enter dractions Failover")
+
+	name := w.GetName()
+	namespace := w.GetNameSpace()
+	//placementName := w.GetPlacementName()
+	drPolicyName := util.DefaultDRPolicy
+	drpcName := name + "-drpc"
+	client := r.Ctx.HubDynamicClient()
+
+	_, err := r.isDRPCReady(client, namespace, drpcName)
+	if err != nil {
+		return err
+	}
+
+	// enable phase check when necessary
+	r.waitDRPCPhase(client, namespace, drpcName, "Deployed")
+
+	r.Ctx.Log.Info("get placementcontrol " + drpcName)
+	drpc, err := getDRPlacementControl(client, namespace, drpcName)
+	if err != nil {
+		return err
+	}
+
+	r.Ctx.Log.Info("get drpolicy " + drPolicyName)
+	drpolicy, err := getDRPolicy(client, drPolicyName)
+	if err != nil {
+		return err
+	}
+
+	preferredCluster := drpc.Spec.PreferredCluster
+	failoverCluster := ""
+
+	if preferredCluster == drpolicy.Spec.DRClusters[0] {
+		failoverCluster = drpolicy.Spec.DRClusters[1]
+	} else {
+		failoverCluster = drpolicy.Spec.DRClusters[0]
+	}
+
+	r.Ctx.Log.Info("preferredCluster: " + preferredCluster + " -> failoverCluster: " + failoverCluster)
+	drpc.Spec.Action = "Failover"
+	drpc.Spec.FailoverCluster = failoverCluster
+
+	r.Ctx.Log.Info("update placementcontrol " + drpcName)
+	err = updatePlacementControl(client, drpc)
+	if err != nil {
+		return err
+	}
+
+	_, err = r.isDRPCReady(client, namespace, drpcName)
+	if err != nil {
+		return err
+	}
+
+	// enable phase check when necessary
+	r.waitDRPCPhase(client, namespace, drpcName, "FailedOver")
+
 	return nil
 }
 
@@ -239,5 +366,42 @@ func (r DRActions) Relocate(w workloads.Workload, d deployers.Deployer) error {
 	// Relocate to Primary in DRPolicy as the PrimaryCluster
 	// Update DRPC
 	r.Ctx.Log.Info("enter dractions Relocate")
+
+	name := w.GetName()
+	namespace := w.GetNameSpace()
+	//placementName := w.GetPlacementName()
+	drpcName := name + "-drpc"
+	client := r.Ctx.HubDynamicClient()
+
+	_, err := r.isDRPCReady(client, namespace, drpcName)
+	if err != nil {
+		return err
+	}
+
+	// enable phase check when necessary
+	r.waitDRPCPhase(client, namespace, drpcName, "FailedOver")
+
+	r.Ctx.Log.Info("get placementcontrol " + drpcName)
+	drpc, err := getDRPlacementControl(client, namespace, drpcName)
+	if err != nil {
+		return err
+	}
+
+	drpc.Spec.Action = "Relocate"
+
+	r.Ctx.Log.Info("update placementcontrol " + drpcName)
+	err = updatePlacementControl(client, drpc)
+	if err != nil {
+		return err
+	}
+
+	_, err = r.isDRPCReady(client, namespace, drpcName)
+	if err != nil {
+		return err
+	}
+
+	// enable phase check when necessary
+	r.waitDRPCPhase(client, namespace, drpcName, "Relocated")
+
 	return nil
 }
