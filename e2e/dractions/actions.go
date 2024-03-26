@@ -81,6 +81,8 @@ func (r DRActions) EnableProtection(w workloads.Workload, d deployers.Deployer) 
 				time.Sleep(sleepTime)
 				continue
 			}
+			r.Ctx.Log.Info(fmt.Sprintf("got placementdecision name, loop: %v", i))
+			break
 		}
 
 		r.Ctx.Log.Info("get placementdecision " + placementDecisionName)
@@ -137,11 +139,44 @@ func (r DRActions) EnableProtection(w workloads.Workload, d deployers.Deployer) 
 
 		}
 
-		// drpc, err = getDRPlacementControl(client, namespace, drpcName)
-		// if err != nil {
-		// 	return err
-		// }
-		// fmt.Printf("drpc.Name: %v\n", drpc.Name)
+		retryCount = 15
+		sleepTime = time.Second * 60
+		for i := 0; i <= retryCount; i++ {
+			ready := true
+			drpc, err = getDRPlacementControl(client, namespace, drpcName)
+			if err != nil {
+				fmt.Printf("err: %v\n", err)
+				return err
+			}
+
+			for _, cond := range drpc.Status.Conditions {
+				if cond.Type == "Available" && cond.Status != "True" {
+					r.Ctx.Log.Info("drpc status Available is not True")
+					ready = false
+				}
+				if cond.Type == "PeerReady" && cond.Status != "True" {
+					r.Ctx.Log.Info("drpc status PeerReady is not True")
+					ready = false
+				}
+			}
+			if ready {
+				if drpc.Status.LastGroupSyncTime == nil {
+					r.Ctx.Log.Info("drpc status LastGroupSyncTime is nil")
+					ready = false
+				}
+			}
+			if !ready {
+				r.Ctx.Log.Info(fmt.Sprintf("drpc status is not ready yet, sleep and retry, loop: %v", i))
+				if i == retryCount {
+					return fmt.Errorf("drpc status is not ready yet before timeout")
+				}
+				time.Sleep(sleepTime)
+				continue
+			}
+
+			r.Ctx.Log.Info(fmt.Sprintf("drpc status is ready, loop: %v", i))
+			break
+		}
 
 		return nil
 

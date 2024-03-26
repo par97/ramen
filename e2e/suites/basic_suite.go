@@ -21,16 +21,7 @@ func (s *BasicSuite) SetContext(ctx *util.TestContext) {
 
 func (s *BasicSuite) SetupSuite() error {
 	s.Ctx.Log.Info("enter BasicSuite SetupSuite")
-	// s.w = workloads.Deployment{
-	// 	RepoURL:       "https://github.com/ramendr/ocm-ramen-samples.git",
-	// 	Path:          "subscription/deployment-k8s-regional-rbd",
-	// 	Revision:      "main",
-	// 	Ctx:           s.Ctx,
-	// 	Name:          "deployment-rbd",
-	// 	Namespace:     "deployment-rbd",
-	// 	PVCLabel:      "busybox",
-	// 	PlacementName: "placement",
-	// }
+
 	deployment := &workloads.Deployment{}
 	deployment.Init()
 	deployment.Ctx = s.Ctx
