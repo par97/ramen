@@ -35,16 +35,15 @@ func (r DRActions) EnableProtection(w workloads.Workload, d deployers.Deployer) 
 	_, ok := d.(deployers.Subscription)
 	if ok {
 
-		name := "deployment-rbd"
-		namespace := "deployment-rbd"
-		drPolicyName := "dr-policy"
-		pvcLabel := "busybox"
-		placementName := "placement"
-		placementKind := "placement"
+		name := w.GetName()
+		namespace := w.GetNameSpace()
+		drPolicyName := util.DefaultDRPolicy
+		pvcLabel := w.GetPVCLabel()
+		placementName := w.GetPlacementName()
 		drpcName := name + "-drpc"
 		client := r.Ctx.HubDynamicClient()
 
-		r.Ctx.Log.Info("get placement")
+		r.Ctx.Log.Info("get placement " + placementName)
 		placement, err := getPlacement(client, namespace, placementName)
 		if err != nil {
 			return err
@@ -52,13 +51,13 @@ func (r DRActions) EnableProtection(w workloads.Workload, d deployers.Deployer) 
 
 		placement.Annotations[OCM_SCHEDULING_DISABLE] = "true"
 
-		r.Ctx.Log.Info("update placement")
+		r.Ctx.Log.Info("update placement " + placementName)
 		err = updatePlacement(client, placement)
 		if err != nil {
 			return err
 		}
 
-		r.Ctx.Log.Info("get placement and wait for PlacementSatisfied")
+		r.Ctx.Log.Info("get placement " + placementName + " again and wait for PlacementSatisfied=True")
 
 		placementDecisionName := ""
 		retryCount := 1
@@ -84,16 +83,16 @@ func (r DRActions) EnableProtection(w workloads.Workload, d deployers.Deployer) 
 			}
 		}
 
-		r.Ctx.Log.Info("get placement decision")
+		r.Ctx.Log.Info("get placementdecision " + placementDecisionName)
 		placementDecision, err := getPlacementDecision(client, namespace, placementDecisionName)
 		if err != nil {
 			return err
 		}
 
 		clusterName := placementDecision.Status.Decisions[0].ClusterName
-		r.Ctx.Log.Info("placement decision clusterName: " + clusterName)
+		r.Ctx.Log.Info("placementdecision clusterName: " + clusterName)
 
-		r.Ctx.Log.Info("create drpc")
+		r.Ctx.Log.Info("create drpc " + drpcName)
 		drpc := &ramen.DRPlacementControl{
 			TypeMeta: metav1.TypeMeta{
 				Kind:       "DRPlacementControl",
@@ -110,7 +109,7 @@ func (r DRActions) EnableProtection(w workloads.Workload, d deployers.Deployer) 
 					Name: drPolicyName,
 				},
 				PlacementRef: v1.ObjectReference{
-					Kind: placementKind,
+					Kind: "placement",
 					Name: placementName,
 				},
 				PVCSelector: metav1.LabelSelector{
@@ -132,9 +131,9 @@ func (r DRActions) EnableProtection(w workloads.Workload, d deployers.Deployer) 
 		if err != nil {
 			if !k8serrors.IsAlreadyExists(err) {
 				fmt.Printf("err: %v\n", err)
-				return fmt.Errorf("could not create drplacementcontrol")
+				return fmt.Errorf("could not create drpc " + drpcName)
 			}
-			r.Ctx.Log.Info("DRPC " + drpcName + " already Exists")
+			r.Ctx.Log.Info("drpc " + drpcName + " already Exists")
 
 		}
 
