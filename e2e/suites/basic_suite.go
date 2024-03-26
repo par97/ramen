@@ -1,6 +1,8 @@
 package suites
 
 import (
+	"fmt"
+
 	"github.com/ramendr/ramen/e2e/deployers"
 	"github.com/ramendr/ramen/e2e/dractions"
 	"github.com/ramendr/ramen/e2e/util"
@@ -39,12 +41,12 @@ func (s *BasicSuite) TeardownSuite() error {
 func (s *BasicSuite) Tests() []Test {
 	s.Ctx.Log.Info("enter BasicSuite Tests")
 	return []Test{
-		// s.TestWorkloadDeployment,
+		s.TestWorkloadDeployment,
 		s.TestEnableProtection,
-		// s.TestWorkloadFailover,
-		// s.TestWorkloadRelocation,
-		// s.TestDisableProtection,
-		// s.TestWorkloadUndeployment,
+		s.TestWorkloadFailover,
+		s.TestWorkloadRelocation,
+		s.TestDisableProtection,
+		s.TestWorkloadUndeployment,
 	}
 }
 
@@ -55,7 +57,14 @@ func (s *BasicSuite) TestWorkloadDeployment() error {
 
 func (s *BasicSuite) TestEnableProtection() error {
 	s.Ctx.Log.Info("enter BasicSuite TestEnableProtection")
-	return s.r.EnableProtection(s.w, s.d)
+	err := s.r.EnableProtection(s.w, s.d)
+	if err != nil {
+		fmt.Printf("err: %v\n", err)
+		return err
+	}
+
+	s.Ctx.Log.Info("TestEnableProtection: Pass")
+	return nil
 }
 
 func (s *BasicSuite) TestWorkloadFailover() error {
@@ -70,6 +79,13 @@ func (s *BasicSuite) TestWorkloadRelocation() error {
 
 func (s *BasicSuite) TestDisableProtection() error {
 	s.Ctx.Log.Info("enter BasicSuite TestDisableProtection")
+	err := s.r.DisableProtection(s.w, s.d)
+	if err != nil {
+		fmt.Printf("err: %v\n", err)
+		return err
+	}
+
+	s.Ctx.Log.Info("TestDisableProtection: Pass")
 	return nil
 }
 

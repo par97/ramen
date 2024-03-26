@@ -51,7 +51,7 @@ func (r DRActions) EnableProtection(w workloads.Workload, d deployers.Deployer) 
 
 		placement.Annotations[OCM_SCHEDULING_DISABLE] = "true"
 
-		r.Ctx.Log.Info("update placement " + placementName)
+		r.Ctx.Log.Info("update placement " + placementName + " annotation")
 		err = updatePlacement(client, placement)
 		if err != nil {
 			return err
@@ -177,11 +177,49 @@ func (r DRActions) EnableProtection(w workloads.Workload, d deployers.Deployer) 
 			r.Ctx.Log.Info(fmt.Sprintf("drpc status is ready, loop: %v", i))
 			break
 		}
-
-		return nil
-
+	} else {
+		return fmt.Errorf("deployer not known")
 	}
+	return nil
+}
 
+func (r DRActions) DisableProtection(w workloads.Workload, d deployers.Deployer) error {
+	// remove DRPC
+	// update placement annotation
+	r.Ctx.Log.Info("enter DRActions DisableProtection")
+
+	_, ok := d.(deployers.Subscription)
+	if ok {
+
+		name := w.GetName()
+		namespace := w.GetNameSpace()
+		placementName := w.GetPlacementName()
+		drpcName := name + "-drpc"
+		client := r.Ctx.HubDynamicClient()
+
+		r.Ctx.Log.Info("delete drpc " + drpcName)
+		err := deleteDRPlacementControl(client, namespace, drpcName)
+		if err != nil {
+			return err
+		}
+
+		r.Ctx.Log.Info("get placement " + placementName)
+		placement, err := getPlacement(client, namespace, placementName)
+		if err != nil {
+			return err
+		}
+
+		delete(placement.Annotations, OCM_SCHEDULING_DISABLE)
+
+		r.Ctx.Log.Info("update placement " + placementName + " annotation")
+		err = updatePlacement(client, placement)
+		if err != nil {
+			return err
+		}
+
+	} else {
+		return fmt.Errorf("deployer not known")
+	}
 	return nil
 }
 

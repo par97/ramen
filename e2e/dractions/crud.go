@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	ramen "github.com/ramendr/ramen/api/v1alpha1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -85,4 +86,16 @@ func getDRPlacementControl(client *dynamic.DynamicClient, namespace, name string
 	}
 
 	return &drpc, nil
+}
+
+func deleteDRPlacementControl(client *dynamic.DynamicClient, namespace, name string) error {
+
+	resource := schema.GroupVersionResource{Group: "ramendr.openshift.io", Version: "v1alpha1", Resource: "drplacementcontrols"}
+	err := client.Resource(resource).Namespace(namespace).Delete(context.Background(), name, metav1.DeleteOptions{})
+	if err != nil {
+		if !errors.IsNotFound(err) {
+			return err
+		}
+	}
+	return nil
 }
