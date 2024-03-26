@@ -76,14 +76,14 @@ func configContext(ctx *util.TestContext, config *util.Config) error {
 func setupManagedClustersMapping(ctx *util.TestContext) error {
 
 	cmd := exec.Command("kubectl", "config", "view", "--minify", "--kubeconfig="+ctx.C1Kubeconfig(), "-o=jsonpath={.clusters[0].name}")
-	err, c1name := util.RunCommand(cmd)
+	c1name, err := util.RunCommand(cmd)
 	if err != nil {
 		return err
 	}
 	// fmt.Printf("out c1name: %v\n", c1name)
 
 	cmd = exec.Command("kubectl", "config", "view", "--minify", "--kubeconfig="+ctx.C2Kubeconfig(), "-o=jsonpath={.clusters[0].name}")
-	err, c2name := util.RunCommand(cmd)
+	c2name, err := util.RunCommand(cmd)
 	if err != nil {
 		return err
 	}

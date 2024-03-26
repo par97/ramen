@@ -24,12 +24,12 @@ func (s Subscription) Deploy(w workloads.Workload) error {
 	s.Ctx.Log.Info("enter Subscription Deploy")
 	// w.Kustomize()
 	cmd := exec.Command("kubectl", "apply", "-k", "https://github.com/RamenDR/ocm-ramen-samples.git/channel?ref=main&timeout=90s", "--kubeconfig="+s.Ctx.HubKubeconfig())
-	err, _ := util.RunCommand(cmd)
+	_, err := util.RunCommand(cmd)
 	if err != nil {
 		return err
 	}
 	cmd = exec.Command("kubectl", "apply", "-k", w.GetResourceURL(), "--kubeconfig="+s.Ctx.HubKubeconfig())
-	err, _ = util.RunCommand(cmd)
+	_, err = util.RunCommand(cmd)
 	return err
 }
 
@@ -37,12 +37,12 @@ func (s Subscription) Undeploy(w workloads.Workload) error {
 	// Delete Subscription, Placement, Binding
 	s.Ctx.Log.Info("enter Subscription Undeploy")
 	cmd := exec.Command("kubectl", "delete", "-k", "https://github.com/RamenDR/ocm-ramen-samples.git/channel?ref=main&timeout=90s", "--kubeconfig="+s.Ctx.HubKubeconfig())
-	err, _ := util.RunCommand(cmd)
+	_, err := util.RunCommand(cmd)
 	if err != nil {
 		return err
 	}
 	cmd = exec.Command("kubectl", "delete", "-k", w.GetResourceURL(), "--kubeconfig="+s.Ctx.HubKubeconfig())
-	err, _ = util.RunCommand(cmd)
+	_, err = util.RunCommand(cmd)
 	return err
 }
 

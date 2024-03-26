@@ -43,10 +43,10 @@ func (s *BasicSuite) Tests() []Test {
 	return []Test{
 		s.TestWorkloadDeployment,
 		s.TestEnableProtection,
-		// s.TestWorkloadFailover,
-		// s.TestWorkloadRelocation,
-		// s.TestDisableProtection,
-		// s.TestWorkloadUndeployment,
+		s.TestWorkloadFailover,
+		s.TestWorkloadRelocation,
+		s.TestDisableProtection,
+		s.TestWorkloadUndeployment,
 	}
 }
 

@@ -7,7 +7,7 @@ import (
 	"os/exec"
 )
 
-func RunCommand(cmd *exec.Cmd) (error, string) {
+func RunCommand(cmd *exec.Cmd) (string, error) {
 
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
@@ -19,7 +19,7 @@ func RunCommand(cmd *exec.Cmd) (error, string) {
 		fmt.Println("cmd error: " + cmd.String())
 		fmt.Println(errStr)
 		fmt.Println("====== cmd end ======")
-		return fmt.Errorf("command failed"), errStr
+		return errStr, fmt.Errorf("command failed")
 	}
 	if os.Getenv("e2e_debug") == "true" {
 		fmt.Println("====== cmd start ======")
@@ -27,5 +27,5 @@ func RunCommand(cmd *exec.Cmd) (error, string) {
 		fmt.Println(outStr)
 		fmt.Println("====== cmd end ======")
 	}
-	return nil, outStr
+	return outStr, nil
 }

@@ -15,6 +15,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"open-cluster-management.io/api/cluster/v1beta1"
 )
 
 type DRActions struct {
@@ -43,24 +44,12 @@ func (r DRActions) EnableProtection(w workloads.Workload, d deployers.Deployer) 
 		drpcName := name + "-drpc"
 		client := r.Ctx.HubDynamicClient()
 
-		r.Ctx.Log.Info("get placement " + placementName)
-		placement, err := getPlacement(client, namespace, placementName)
-		if err != nil {
-			return err
-		}
+		r.Ctx.Log.Info("get placement " + placementName + " and wait for PlacementSatisfied=True")
 
-		placement.Annotations[OCM_SCHEDULING_DISABLE] = "true"
-
-		r.Ctx.Log.Info("update placement " + placementName + " annotation")
-		err = updatePlacement(client, placement)
-		if err != nil {
-			return err
-		}
-
-		r.Ctx.Log.Info("get placement " + placementName + " again and wait for PlacementSatisfied=True")
-
+		var placement *v1beta1.Placement
+		var err error
 		placementDecisionName := ""
-		retryCount := 1
+		retryCount := 5
 		sleepTime := time.Second * 60
 		for i := 0; i <= retryCount; i++ {
 			placement, err = getPlacement(client, namespace, placementName)
@@ -93,6 +82,18 @@ func (r DRActions) EnableProtection(w workloads.Workload, d deployers.Deployer) 
 
 		clusterName := placementDecision.Status.Decisions[0].ClusterName
 		r.Ctx.Log.Info("placementdecision clusterName: " + clusterName)
+
+		// move update placement annotation after placement has been handled
+		// otherwise if we first add ocm disable annotation then it might not
+		// yet be handled by ocm and thus PlacementSatisfied=false
+
+		placement.Annotations[OCM_SCHEDULING_DISABLE] = "true"
+
+		r.Ctx.Log.Info("update placement " + placementName + " annotation")
+		err = updatePlacement(client, placement)
+		if err != nil {
+			return err
+		}
 
 		r.Ctx.Log.Info("create drpc " + drpcName)
 		drpc := &ramen.DRPlacementControl{
