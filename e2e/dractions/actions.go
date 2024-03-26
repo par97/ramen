@@ -139,7 +139,7 @@ func (r DRActions) EnableProtection(w workloads.Workload, d deployers.Deployer) 
 
 		}
 
-		retryCount = 15
+		retryCount = 5
 		sleepTime = time.Second * 60
 		for i := 0; i <= retryCount; i++ {
 			ready := true
