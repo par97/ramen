@@ -43,7 +43,7 @@ func updatePlacement(client *dynamic.DynamicClient, placement *clusterv1beta1.Pl
 
 	unstr := &unstructured.Unstructured{Object: tempMap}
 	resource := schema.GroupVersionResource{Group: "cluster.open-cluster-management.io", Version: "v1beta1", Resource: "placements"}
-	_, err = client.Resource(resource).Namespace(placement.GetNamespace()).Update(context.TODO(), unstr, metav1.UpdateOptions{})
+	_, err = client.Resource(resource).Namespace(placement.GetNamespace()).Update(context.Background(), unstr, metav1.UpdateOptions{})
 	if err != nil {
 		fmt.Printf("err: %v\n", err)
 		return fmt.Errorf("could not update placment")
@@ -70,7 +70,7 @@ func getPlacementDecision(client *dynamic.DynamicClient, namespace, name string)
 	return &placementDecision, nil
 }
 
-func getDRPlacementControl(client *dynamic.DynamicClient, namespace, name string) (*ramen.DRPlacementControl, error) {
+func getDRPC(client *dynamic.DynamicClient, namespace, name string) (*ramen.DRPlacementControl, error) {
 	resource := schema.GroupVersionResource{Group: "ramendr.openshift.io", Version: "v1alpha1", Resource: "drplacementcontrols"}
 	unstr, err := client.Resource(resource).Namespace(namespace).Get(context.Background(), name, metav1.GetOptions{})
 	if err != nil {
@@ -88,9 +88,9 @@ func getDRPlacementControl(client *dynamic.DynamicClient, namespace, name string
 	return &drpc, nil
 }
 
-func updatePlacementControl(client *dynamic.DynamicClient, placementcontrol *ramen.DRPlacementControl) error {
+func (r DRActions) createDRPC(client *dynamic.DynamicClient, drpc *ramen.DRPlacementControl) error {
 
-	tempMap, err := runtime.DefaultUnstructuredConverter.ToUnstructured(placementcontrol)
+	tempMap, err := runtime.DefaultUnstructuredConverter.ToUnstructured(drpc)
 	if err != nil {
 		fmt.Printf("err: %v\n", err)
 		return fmt.Errorf("could not ToUnstructured")
@@ -98,10 +98,33 @@ func updatePlacementControl(client *dynamic.DynamicClient, placementcontrol *ram
 
 	unstr := &unstructured.Unstructured{Object: tempMap}
 	resource := schema.GroupVersionResource{Group: "ramendr.openshift.io", Version: "v1alpha1", Resource: "drplacementcontrols"}
-	_, err = client.Resource(resource).Namespace(placementcontrol.GetNamespace()).Update(context.TODO(), unstr, metav1.UpdateOptions{})
+	_, err = client.Resource(resource).Namespace(drpc.GetNamespace()).Create(context.Background(), unstr, metav1.CreateOptions{})
+
+	if err != nil {
+		if !errors.IsAlreadyExists(err) {
+			fmt.Printf("err: %v\n", err)
+			return fmt.Errorf("could not create drpc " + drpc.Name)
+		}
+		r.Ctx.Log.Info("drpc " + drpc.Name + " already Exists")
+	}
+
+	return nil
+}
+
+func updateDRPC(client *dynamic.DynamicClient, drpc *ramen.DRPlacementControl) error {
+
+	tempMap, err := runtime.DefaultUnstructuredConverter.ToUnstructured(drpc)
 	if err != nil {
 		fmt.Printf("err: %v\n", err)
-		return fmt.Errorf("could not update placmentcontrol")
+		return fmt.Errorf("could not ToUnstructured")
+	}
+
+	unstr := &unstructured.Unstructured{Object: tempMap}
+	resource := schema.GroupVersionResource{Group: "ramendr.openshift.io", Version: "v1alpha1", Resource: "drplacementcontrols"}
+	_, err = client.Resource(resource).Namespace(drpc.GetNamespace()).Update(context.Background(), unstr, metav1.UpdateOptions{})
+	if err != nil {
+		fmt.Printf("err: %v\n", err)
+		return fmt.Errorf("could not update drpc CR")
 	}
 
 	return nil

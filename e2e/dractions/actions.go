@@ -1,22 +1,14 @@
 package dractions
 
 import (
-	"context"
 	"fmt"
-	"time"
 
 	ramen "github.com/ramendr/ramen/api/v1alpha1"
 	"github.com/ramendr/ramen/e2e/deployers"
 	"github.com/ramendr/ramen/e2e/util"
 	"github.com/ramendr/ramen/e2e/workloads"
 	v1 "k8s.io/api/core/v1"
-	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/client-go/dynamic"
-	"open-cluster-management.io/api/cluster/v1beta1"
 )
 
 type DRActions struct {
@@ -45,38 +37,9 @@ func (r DRActions) EnableProtection(w workloads.Workload, d deployers.Deployer) 
 		drpcName := name + "-drpc"
 		client := r.Ctx.HubDynamicClient()
 
-		r.Ctx.Log.Info("get placement " + placementName + " and wait for PlacementSatisfied=True")
-
-		var placement *v1beta1.Placement
-		var err error
-		placementDecisionName := ""
-
-		timeout := 300 //seconds
-		interval := 30 //seconds
-		startTime := time.Now()
-
-		for {
-			placement, err = getPlacement(client, namespace, placementName)
-			if err != nil {
-				fmt.Printf("err: %v\n", err)
-				return err
-			}
-
-			for _, cond := range placement.Status.Conditions {
-				if cond.Type == "PlacementSatisfied" && cond.Status == "True" {
-					placementDecisionName = placement.Status.DecisionGroups[0].Decisions[0]
-				}
-			}
-			if placementDecisionName != "" {
-				r.Ctx.Log.Info("got placementdecision name" + placementDecisionName)
-				break
-			}
-			if time.Since(startTime) > time.Second*time.Duration(timeout) {
-				fmt.Println("time out")
-				return fmt.Errorf("could not find placement decision before timeout")
-			}
-			r.Ctx.Log.Info(fmt.Sprintf("placementSatisfied is not True, sleep %v seconds", interval))
-			time.Sleep(time.Second * time.Duration(interval))
+		placement, placementDecisionName, err := r.waitPlacementDecision(client, namespace, placementName)
+		if err != nil {
+			return err
 		}
 
 		r.Ctx.Log.Info("get placementdecision " + placementDecisionName)
@@ -126,65 +89,16 @@ func (r DRActions) EnableProtection(w workloads.Workload, d deployers.Deployer) 
 			},
 		}
 
-		tempMap, err := runtime.DefaultUnstructuredConverter.ToUnstructured(drpc)
+		err = r.createDRPC(client, drpc)
 		if err != nil {
-			fmt.Printf("err: %v\n", err)
-			return fmt.Errorf("could not ToUnstructured")
+			return err
 		}
 
-		unstr := &unstructured.Unstructured{Object: tempMap}
-		resource := schema.GroupVersionResource{Group: "ramendr.openshift.io", Version: "v1alpha1", Resource: "drplacementcontrols"}
-
-		_, err = client.Resource(resource).Namespace(namespace).Create(context.Background(), unstr, metav1.CreateOptions{})
+		err = r.waitDRPCReady(client, namespace, drpcName)
 		if err != nil {
-			if !k8serrors.IsAlreadyExists(err) {
-				fmt.Printf("err: %v\n", err)
-				return fmt.Errorf("could not create drpc " + drpcName)
-			}
-			r.Ctx.Log.Info("drpc " + drpcName + " already Exists")
-
+			return err
 		}
 
-		timeout = 300 //seconds
-		interval = 30 //seconds
-		startTime = time.Now()
-		for {
-			ready := true
-			drpc, err = getDRPlacementControl(client, namespace, drpcName)
-			if err != nil {
-				fmt.Printf("err: %v\n", err)
-				return err
-			}
-
-			for _, cond := range drpc.Status.Conditions {
-				if cond.Type == "Available" && cond.Status != "True" {
-					r.Ctx.Log.Info("drpc status Available is not True")
-					ready = false
-					break
-				}
-				if cond.Type == "PeerReady" && cond.Status != "True" {
-					r.Ctx.Log.Info("drpc status PeerReady is not True")
-					ready = false
-					break
-				}
-			}
-			if ready {
-				if drpc.Status.LastGroupSyncTime == nil {
-					r.Ctx.Log.Info("drpc status LastGroupSyncTime is nil")
-					ready = false
-				}
-			}
-			if ready {
-				r.Ctx.Log.Info("drpc status is ready")
-				break
-			}
-			if time.Since(startTime) > time.Second*time.Duration(timeout) {
-				fmt.Println("time out")
-				return fmt.Errorf("drpc status is not ready yet before timeout")
-			}
-			r.Ctx.Log.Info(fmt.Sprintf("drpc status is not ready yet, sleep %v seconds", interval))
-			time.Sleep(time.Second * time.Duration(interval))
-		}
 	} else {
 		return fmt.Errorf("deployer not known")
 	}
@@ -231,77 +145,6 @@ func (r DRActions) DisableProtection(w workloads.Workload, d deployers.Deployer)
 	return nil
 }
 
-func (r DRActions) isDRPCReady(client *dynamic.DynamicClient, namespace string, drpcName string) (bool, error) {
-	r.Ctx.Log.Info("enter isDRPCReady")
-
-	retryCount := 5
-	sleepTime := time.Second * 60
-	for i := 0; i <= retryCount; i++ {
-		ready := true
-		drpc, err := getDRPlacementControl(client, namespace, drpcName)
-		if err != nil {
-			fmt.Printf("err: %v\n", err)
-			return false, err
-		}
-
-		for _, cond := range drpc.Status.Conditions {
-			if cond.Type == "Available" && cond.Status != "True" {
-				r.Ctx.Log.Info("drpc status Available is not True")
-				ready = false
-			}
-			if cond.Type == "PeerReady" && cond.Status != "True" {
-				r.Ctx.Log.Info("drpc status PeerReady is not True")
-				ready = false
-			}
-		}
-		if ready {
-			if drpc.Status.LastGroupSyncTime == nil {
-				r.Ctx.Log.Info("drpc status LastGroupSyncTime is nil")
-				ready = false
-			}
-		}
-		if !ready {
-			r.Ctx.Log.Info(fmt.Sprintf("drpc status is not ready yet, sleep and retry, loop: %v", i))
-			if i == retryCount {
-				return false, fmt.Errorf("drpc status is not ready yet before timeout")
-			}
-			time.Sleep(sleepTime)
-			continue
-		}
-
-		r.Ctx.Log.Info(fmt.Sprintf("drpc status is ready, loop: %v", i))
-		return true, nil
-	}
-
-	return false, nil
-}
-
-func (r DRActions) waitDRPCPhase(client *dynamic.DynamicClient, namespace string, drpcName string, phase string) error {
-	r.Ctx.Log.Info("enter waitDRPCPhase")
-
-	retryCount := 10
-	sleepTime := time.Second * 60
-	for i := 0; i <= retryCount; i++ {
-		drpc, err := getDRPlacementControl(client, namespace, drpcName)
-		if err != nil {
-			fmt.Printf("err: %v\n", err)
-			return err
-		}
-
-		nowPhase := string(drpc.Status.Phase)
-		r.Ctx.Log.Info("now drpc phase is " + nowPhase + " but expecting " + phase)
-
-		if nowPhase == phase {
-			return nil
-		} else {
-			time.Sleep(sleepTime)
-			continue
-		}
-	}
-
-	return fmt.Errorf("failed to wait phase of drpc to become " + phase)
-}
-
 func (r DRActions) Failover(w workloads.Workload, d deployers.Deployer) error {
 	// Determine DRPC
 	// Check Placement
@@ -316,16 +159,22 @@ func (r DRActions) Failover(w workloads.Workload, d deployers.Deployer) error {
 	drpcName := name + "-drpc"
 	client := r.Ctx.HubDynamicClient()
 
-	_, err := r.isDRPCReady(client, namespace, drpcName)
+	// here we expect drpc should be ready before failover
+	err := r.waitDRPCReady(client, namespace, drpcName)
 	if err != nil {
 		return err
 	}
 
 	// enable phase check when necessary
-	r.waitDRPCPhase(client, namespace, drpcName, "Deployed")
+	// here we expect phase should be Deployed before failover
+	// TODO: will update for other valid phases
+	err = r.waitDRPCPhase(client, namespace, drpcName, "Deployed")
+	if err != nil {
+		return err
+	}
 
-	r.Ctx.Log.Info("get placementcontrol " + drpcName)
-	drpc, err := getDRPlacementControl(client, namespace, drpcName)
+	r.Ctx.Log.Info("get drpc " + drpcName)
+	drpc, err := getDRPC(client, namespace, drpcName)
 	if err != nil {
 		return err
 	}
@@ -349,16 +198,19 @@ func (r DRActions) Failover(w workloads.Workload, d deployers.Deployer) error {
 	drpc.Spec.Action = "Failover"
 	drpc.Spec.FailoverCluster = failoverCluster
 
-	r.Ctx.Log.Info("update placementcontrol " + drpcName)
-	err = updatePlacementControl(client, drpc)
+	r.Ctx.Log.Info("update drpc " + drpcName)
+	err = updateDRPC(client, drpc)
 	if err != nil {
 		return err
 	}
 
 	// check Phase
-	r.waitDRPCPhase(client, namespace, drpcName, "FailedOver")
-	// then check Conoditions
-	_, err = r.isDRPCReady(client, namespace, drpcName)
+	err = r.waitDRPCPhase(client, namespace, drpcName, "FailedOver")
+	if err != nil {
+		return err
+	}
+	// then check Conditions
+	err = r.waitDRPCReady(client, namespace, drpcName)
 	if err != nil {
 		return err
 	}
@@ -379,32 +231,41 @@ func (r DRActions) Relocate(w workloads.Workload, d deployers.Deployer) error {
 	drpcName := name + "-drpc"
 	client := r.Ctx.HubDynamicClient()
 
-	_, err := r.isDRPCReady(client, namespace, drpcName)
+	// here we expect drpc should be ready before relocate
+	err := r.waitDRPCReady(client, namespace, drpcName)
 	if err != nil {
 		return err
 	}
 
 	// enable phase check when necessary
-	r.waitDRPCPhase(client, namespace, drpcName, "FailedOver")
+	// here we expect phase should be FailedOver before relocate
+	// TODO: will update for other valid phases
+	err = r.waitDRPCPhase(client, namespace, drpcName, "FailedOver")
+	if err != nil {
+		return err
+	}
 
-	r.Ctx.Log.Info("get placementcontrol " + drpcName)
-	drpc, err := getDRPlacementControl(client, namespace, drpcName)
+	r.Ctx.Log.Info("get drpc " + drpcName)
+	drpc, err := getDRPC(client, namespace, drpcName)
 	if err != nil {
 		return err
 	}
 
 	drpc.Spec.Action = "Relocate"
 
-	r.Ctx.Log.Info("update placementcontrol " + drpcName)
-	err = updatePlacementControl(client, drpc)
+	r.Ctx.Log.Info("update drpc " + drpcName)
+	err = updateDRPC(client, drpc)
 	if err != nil {
 		return err
 	}
 
 	// check Phase
-	r.waitDRPCPhase(client, namespace, drpcName, "Relocated")
-	// then check Conoditions
-	_, err = r.isDRPCReady(client, namespace, drpcName)
+	err = r.waitDRPCPhase(client, namespace, drpcName, "Relocated")
+	if err != nil {
+		return err
+	}
+	// then check Conditions
+	err = r.waitDRPCReady(client, namespace, drpcName)
 	if err != nil {
 		return err
 	}
