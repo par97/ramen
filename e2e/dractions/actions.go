@@ -349,13 +349,13 @@ func (r DRActions) Failover(w workloads.Workload, d deployers.Deployer) error {
 		return err
 	}
 
+	// check Phase
+	r.waitDRPCPhase(client, namespace, drpcName, "FailedOver")
+	// then check Conoditions
 	_, err = r.isDRPCReady(client, namespace, drpcName)
 	if err != nil {
 		return err
 	}
-
-	// enable phase check when necessary
-	r.waitDRPCPhase(client, namespace, drpcName, "FailedOver")
 
 	return nil
 }
@@ -395,13 +395,13 @@ func (r DRActions) Relocate(w workloads.Workload, d deployers.Deployer) error {
 		return err
 	}
 
+	// check Phase
+	r.waitDRPCPhase(client, namespace, drpcName, "Relocated")
+	// then check Conoditions
 	_, err = r.isDRPCReady(client, namespace, drpcName)
 	if err != nil {
 		return err
 	}
-
-	// enable phase check when necessary
-	r.waitDRPCPhase(client, namespace, drpcName, "Relocated")
 
 	return nil
 }
