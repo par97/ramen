@@ -2,13 +2,13 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os/exec"
 
 	"github.com/ramendr/ramen/e2e/util"
 	"github.com/spf13/viper"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	clusterv1 "open-cluster-management.io/api/cluster/v1"
 )
@@ -80,30 +80,24 @@ func setupManagedClustersMapping(ctx *util.TestContext) error {
 	if err != nil {
 		return err
 	}
-	// fmt.Printf("out c1name: %v\n", c1name)
 
 	cmd = exec.Command("kubectl", "config", "view", "--minify", "--kubeconfig="+ctx.C2Kubeconfig(), "-o=jsonpath={.clusters[0].name}")
 	c2name, err := util.RunCommand(cmd)
 	if err != nil {
 		return err
 	}
-	// fmt.Printf("out c2name: %v\n", c2name)
 
 	client := ctx.HubDynamicClient()
 
 	resource := schema.GroupVersionResource{Group: "cluster.open-cluster-management.io", Version: "v1", Resource: "managedclusters"}
-	resp, err := client.Resource(resource).List(context.TODO(), metav1.ListOptions{})
+	unstrList, err := client.Resource(resource).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		fmt.Printf("err: %v\n", err)
 		return fmt.Errorf("could not list managedcluster")
 	}
-	respJson, err := resp.MarshalJSON()
-	if err != nil {
-		fmt.Println(err)
-		return fmt.Errorf("could not marshaljson")
-	}
+
 	list := clusterv1.ManagedClusterList{}
-	err = json.Unmarshal(respJson, &list)
+	err = runtime.DefaultUnstructuredConverter.FromUnstructured(unstrList.UnstructuredContent(), &list)
 	if err != nil {
 		fmt.Println(err)
 		return fmt.Errorf("could not unmarshaljson")
@@ -115,11 +109,6 @@ func setupManagedClustersMapping(ctx *util.TestContext) error {
 
 	mc1name := list.Items[0].ObjectMeta.Name
 	mc2name := list.Items[1].ObjectMeta.Name
-
-	// fmt.Printf("mc1name: %v\n", mc1name)
-	// fmt.Printf("mc2name: %v\n", mc2name)
-	// fmt.Printf("c1name: %v\n", c1name)
-	// fmt.Printf("c2name: %v\n", c2name)
 
 	ctx.ManagedClusters = make(map[string]string)
 
