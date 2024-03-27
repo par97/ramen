@@ -148,7 +148,7 @@ func getDRPolicy(client *dynamic.DynamicClient, name string) (*ramen.DRPolicy, e
 	return &drpolicy, nil
 }
 
-func deleteDRPlacementControl(client *dynamic.DynamicClient, namespace, name string) error {
+func deleteDRPC(client *dynamic.DynamicClient, namespace, name string) error {
 
 	resource := schema.GroupVersionResource{Group: "ramendr.openshift.io", Version: "v1alpha1", Resource: "drplacementcontrols"}
 	err := client.Resource(resource).Namespace(namespace).Delete(context.Background(), name, metav1.DeleteOptions{})

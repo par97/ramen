@@ -120,7 +120,7 @@ func (r DRActions) DisableProtection(w workloads.Workload, d deployers.Deployer)
 		client := r.Ctx.HubDynamicClient()
 
 		r.Ctx.Log.Info("delete drpc " + drpcName)
-		err := deleteDRPlacementControl(client, namespace, drpcName)
+		err := deleteDRPC(client, namespace, drpcName)
 		if err != nil {
 			return err
 		}
