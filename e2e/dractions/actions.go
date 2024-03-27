@@ -49,11 +49,15 @@ func (r DRActions) EnableProtection(w workloads.Workload, d deployers.Deployer) 
 		var placement *v1beta1.Placement
 		var err error
 		placementDecisionName := ""
-		retryCount := 5
-		sleepTime := time.Second * 60
-		for i := 0; i <= retryCount; i++ {
+
+		timeout := 300 //seconds
+		interval := 30 //seconds
+		startTime := time.Now()
+
+		for {
 			placement, err = getPlacement(client, namespace, placementName)
 			if err != nil {
+				fmt.Printf("err: %v\n", err)
 				return err
 			}
 
@@ -62,16 +66,16 @@ func (r DRActions) EnableProtection(w workloads.Workload, d deployers.Deployer) 
 					placementDecisionName = placement.Status.DecisionGroups[0].Decisions[0]
 				}
 			}
-			if placementDecisionName == "" {
-				r.Ctx.Log.Info(fmt.Sprintf("can not find placement decision, sleep and retry, loop: %v", i))
-				if i == retryCount {
-					return fmt.Errorf("could not find placement decision before timeout")
-				}
-				time.Sleep(sleepTime)
-				continue
+			if placementDecisionName != "" {
+				r.Ctx.Log.Info("got placementdecision name" + placementDecisionName)
+				break
 			}
-			r.Ctx.Log.Info(fmt.Sprintf("got placementdecision name, loop: %v", i))
-			break
+			if time.Since(startTime) > time.Second*time.Duration(timeout) {
+				fmt.Println("time out")
+				return fmt.Errorf("could not find placement decision before timeout")
+			}
+			r.Ctx.Log.Info(fmt.Sprintf("placementSatisfied is not True, sleep %v seconds", interval))
+			time.Sleep(time.Second * time.Duration(interval))
 		}
 
 		r.Ctx.Log.Info("get placementdecision " + placementDecisionName)
@@ -140,9 +144,10 @@ func (r DRActions) EnableProtection(w workloads.Workload, d deployers.Deployer) 
 
 		}
 
-		retryCount = 5
-		sleepTime = time.Second * 60
-		for i := 0; i <= retryCount; i++ {
+		timeout = 300 //seconds
+		interval = 30 //seconds
+		startTime = time.Now()
+		for {
 			ready := true
 			drpc, err = getDRPlacementControl(client, namespace, drpcName)
 			if err != nil {
@@ -154,10 +159,12 @@ func (r DRActions) EnableProtection(w workloads.Workload, d deployers.Deployer) 
 				if cond.Type == "Available" && cond.Status != "True" {
 					r.Ctx.Log.Info("drpc status Available is not True")
 					ready = false
+					break
 				}
 				if cond.Type == "PeerReady" && cond.Status != "True" {
 					r.Ctx.Log.Info("drpc status PeerReady is not True")
 					ready = false
+					break
 				}
 			}
 			if ready {
@@ -166,17 +173,16 @@ func (r DRActions) EnableProtection(w workloads.Workload, d deployers.Deployer) 
 					ready = false
 				}
 			}
-			if !ready {
-				r.Ctx.Log.Info(fmt.Sprintf("drpc status is not ready yet, sleep and retry, loop: %v", i))
-				if i == retryCount {
-					return fmt.Errorf("drpc status is not ready yet before timeout")
-				}
-				time.Sleep(sleepTime)
-				continue
+			if ready {
+				r.Ctx.Log.Info("drpc status is ready")
+				break
 			}
-
-			r.Ctx.Log.Info(fmt.Sprintf("drpc status is ready, loop: %v", i))
-			break
+			if time.Since(startTime) > time.Second*time.Duration(timeout) {
+				fmt.Println("time out")
+				return fmt.Errorf("drpc status is not ready yet before timeout")
+			}
+			r.Ctx.Log.Info(fmt.Sprintf("drpc status is not ready yet, sleep %v seconds", interval))
+			time.Sleep(time.Second * time.Duration(interval))
 		}
 	} else {
 		return fmt.Errorf("deployer not known")
