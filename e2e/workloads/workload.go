@@ -9,4 +9,6 @@ type Workload interface {
 	GetPVCLabel() string
 	GetPlacementName() string
 	Init()
+	Deploy() error
+	Undeploy() error
 }

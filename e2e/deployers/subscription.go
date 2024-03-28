@@ -1,8 +1,6 @@
 package deployers
 
 import (
-	"os/exec"
-
 	"github.com/ramendr/ramen/e2e/util"
 	"github.com/ramendr/ramen/e2e/workloads"
 )
@@ -23,27 +21,13 @@ func (s Subscription) Deploy(w workloads.Workload) error {
 	// Address namespace/label/suffix as needed for various resources
 	s.Ctx.Log.Info("enter Subscription Deploy")
 	// w.Kustomize()
-	cmd := exec.Command("kubectl", "apply", "-k", "https://github.com/RamenDR/ocm-ramen-samples.git/channel?ref=main&timeout=90s", "--kubeconfig="+s.Ctx.HubKubeconfig())
-	_, err := util.RunCommand(cmd)
-	if err != nil {
-		return err
-	}
-	cmd = exec.Command("kubectl", "apply", "-k", w.GetResourceURL(), "--kubeconfig="+s.Ctx.HubKubeconfig())
-	_, err = util.RunCommand(cmd)
-	return err
+	return w.Deploy()
 }
 
 func (s Subscription) Undeploy(w workloads.Workload) error {
 	// Delete Subscription, Placement, Binding
 	s.Ctx.Log.Info("enter Subscription Undeploy")
-	cmd := exec.Command("kubectl", "delete", "-k", "https://github.com/RamenDR/ocm-ramen-samples.git/channel?ref=main&timeout=90s", "--kubeconfig="+s.Ctx.HubKubeconfig())
-	_, err := util.RunCommand(cmd)
-	if err != nil {
-		return err
-	}
-	cmd = exec.Command("kubectl", "delete", "-k", w.GetResourceURL(), "--kubeconfig="+s.Ctx.HubKubeconfig())
-	_, err = util.RunCommand(cmd)
-	return err
+	return w.Undeploy()
 }
 
 func (s Subscription) Health(w workloads.Workload) error {

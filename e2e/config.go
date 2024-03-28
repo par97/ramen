@@ -1,16 +1,10 @@
 package main
 
 import (
-	"context"
 	"fmt"
-	"os/exec"
 
 	"github.com/ramendr/ramen/e2e/util"
 	"github.com/spf13/viper"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
-	clusterv1 "open-cluster-management.io/api/cluster/v1"
 )
 
 func validateConfig(config *util.Config) error {
@@ -68,59 +62,6 @@ func configContext(ctx *util.TestContext, config *util.Config) error {
 			K8sClientSet:  k8sClientSet,
 			DynamicClient: dynamicClient,
 		}
-	}
-
-	return setupManagedClustersMapping(ctx)
-}
-
-func setupManagedClustersMapping(ctx *util.TestContext) error {
-
-	cmd := exec.Command("kubectl", "config", "view", "--minify", "--kubeconfig="+ctx.C1Kubeconfig(), "-o=jsonpath={.clusters[0].name}")
-	c1name, err := util.RunCommand(cmd)
-	if err != nil {
-		return err
-	}
-
-	cmd = exec.Command("kubectl", "config", "view", "--minify", "--kubeconfig="+ctx.C2Kubeconfig(), "-o=jsonpath={.clusters[0].name}")
-	c2name, err := util.RunCommand(cmd)
-	if err != nil {
-		return err
-	}
-
-	client := ctx.HubDynamicClient()
-
-	resource := schema.GroupVersionResource{Group: "cluster.open-cluster-management.io", Version: "v1", Resource: "managedclusters"}
-	unstrList, err := client.Resource(resource).List(context.TODO(), metav1.ListOptions{})
-	if err != nil {
-		fmt.Printf("err: %v\n", err)
-		return fmt.Errorf("could not list managedcluster")
-	}
-
-	list := clusterv1.ManagedClusterList{}
-	err = runtime.DefaultUnstructuredConverter.FromUnstructured(unstrList.UnstructuredContent(), &list)
-	if err != nil {
-		fmt.Println(err)
-		return fmt.Errorf("could not unmarshaljson")
-	}
-	number := len(list.Items)
-	if number != 2 {
-		return fmt.Errorf("found %v managedclusters, not equal to 2", number)
-	}
-
-	mc1name := list.Items[0].ObjectMeta.Name
-	mc2name := list.Items[1].ObjectMeta.Name
-
-	ctx.ManagedClusters = make(map[string]string)
-
-	if mc1name == c1name && mc2name == c2name {
-		ctx.ManagedClusters[mc1name] = "c1"
-		ctx.ManagedClusters[mc2name] = "c2"
-	} else if mc1name == c2name && mc2name == c1name {
-		ctx.ManagedClusters[mc1name] = "c2"
-		ctx.ManagedClusters[mc2name] = "c1"
-	} else {
-		err := fmt.Errorf("could not find matched cluster name in kubeconfig and managedcluster")
-		return err
 	}
 
 	return nil
