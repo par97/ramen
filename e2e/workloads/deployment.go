@@ -52,7 +52,6 @@ func (w *Deployment) Kustomize() error {
 	w.Ctx.Log.Info("enter Deployment Kustomize")
 
 	return nil
-
 }
 
 func (w *Deployment) GetResources() error {
