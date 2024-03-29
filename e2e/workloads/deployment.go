@@ -25,6 +25,7 @@ func (w *Deployment) Init() {
 	w.Namespace = "deployment-rbd"
 	w.PVCLabel = "busybox"
 	w.PlacementName = "placement"
+	w.ChannelNamespace = "ramen-samples"
 }
 
 func (w *Deployment) GetName() string {
