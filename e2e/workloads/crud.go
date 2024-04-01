@@ -21,7 +21,7 @@ func (w *Deployment) createNamespace(namespace string) error {
 		},
 	}
 
-	_, err := w.Ctx.HubClient().CoreV1().Namespaces().Create(context.Background(), objNs, metav1.CreateOptions{})
+	_, err := w.Ctx.HubK8sClientSet().CoreV1().Namespaces().Create(context.Background(), objNs, metav1.CreateOptions{})
 	if err != nil {
 		fmt.Printf("err: %v\n", err)
 		return err
@@ -53,7 +53,7 @@ func (w *Deployment) createManagedClusterSetBinding() error {
 func (w *Deployment) deleteNamespace(namespace string) error {
 	w.Ctx.Log.Info("enter Deployment deleteNamespace " + namespace)
 
-	err := w.Ctx.HubClient().CoreV1().Namespaces().Delete(context.Background(), namespace, metav1.DeleteOptions{})
+	err := w.Ctx.HubK8sClientSet().CoreV1().Namespaces().Delete(context.Background(), namespace, metav1.DeleteOptions{})
 	if err != nil {
 		fmt.Printf("err: %v\n", err)
 		return err

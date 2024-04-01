@@ -48,7 +48,7 @@ func (s *PrecheckSuite) Tests() []Test {
 func (s *PrecheckSuite) TestRamenHubOperatorStatus() error {
 	s.ctx.Log.Info("enter PrecheckSuite TestRamenHubOperatorStatus")
 
-	isRunning, podName, err := CheckRamenHubPodRunningStatus(s.ctx.HubClient())
+	isRunning, podName, err := CheckRamenHubPodRunningStatus(s.ctx.HubK8sClientSet())
 	if err != nil {
 		return err
 	}
@@ -66,7 +66,7 @@ func (s *PrecheckSuite) TestRamenHubOperatorStatus() error {
 func (s *PrecheckSuite) TestRamenSpokeOperatorStatus() error {
 	s.ctx.Log.Info("enter PrecheckSuite TestRamenSpokeOperatorStatus")
 
-	isRunning, podName, err := CheckRamenSpokePodRunningStatus(s.ctx.C1Client())
+	isRunning, podName, err := CheckRamenSpokePodRunningStatus(s.ctx.C1K8sClientSet())
 	if err != nil {
 		return err
 	}
@@ -77,7 +77,7 @@ func (s *PrecheckSuite) TestRamenSpokeOperatorStatus() error {
 		return fmt.Errorf("no running Ramen Spoke Operator pod on cluster 1")
 	}
 
-	isRunning, podName, err = CheckRamenSpokePodRunningStatus(s.ctx.C2Client())
+	isRunning, podName, err = CheckRamenSpokePodRunningStatus(s.ctx.C2K8sClientSet())
 	if err != nil {
 		return err
 	}

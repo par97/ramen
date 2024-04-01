@@ -6,7 +6,9 @@ import (
 	"github.com/go-logr/logr"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/tools/clientcmd"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type Config struct {
@@ -18,6 +20,7 @@ type Config struct {
 type Cluster struct {
 	K8sClientSet  *kubernetes.Clientset
 	DynamicClient *dynamic.DynamicClient
+	CtrlClient    client.Client
 }
 
 type Clusters map[string]*Cluster
@@ -29,26 +32,31 @@ type TestContext struct {
 	ManagedClusters map[string]string
 }
 
-func GetClientSetFromKubeConfigPath(kubeconfigPath string) (*kubernetes.Clientset, *dynamic.DynamicClient, error) {
+func GetClientSetFromKubeConfigPath(kubeconfigPath string) (*kubernetes.Clientset, *dynamic.DynamicClient, client.Client, error) {
 	config, err := clientcmd.BuildConfigFromFlags("", kubeconfigPath)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 
 	k8sClientSet, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 
 	dynamicClient, err := dynamic.NewForConfig(config)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 
-	return k8sClientSet, dynamicClient, nil
+	ctrlClient, err := client.New(config, client.Options{Scheme: scheme.Scheme})
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	return k8sClientSet, dynamicClient, ctrlClient, nil
 }
 
-func (ctx *TestContext) HubClient() *kubernetes.Clientset {
+func (ctx *TestContext) HubK8sClientSet() *kubernetes.Clientset {
 	return ctx.Clusters["hub"].K8sClientSet
 }
 
@@ -56,11 +64,15 @@ func (ctx *TestContext) HubDynamicClient() *dynamic.DynamicClient {
 	return ctx.Clusters["hub"].DynamicClient
 }
 
+func (ctx *TestContext) HubCtrlClient() client.Client {
+	return ctx.Clusters["hub"].CtrlClient
+}
+
 func (ctx *TestContext) HubKubeconfig() string {
 	return ctx.Config.Clusters["hub"].KubeconfigPath
 }
 
-func (ctx *TestContext) C1Client() *kubernetes.Clientset {
+func (ctx *TestContext) C1K8sClientSet() *kubernetes.Clientset {
 	return ctx.Clusters["c1"].K8sClientSet
 }
 
@@ -68,16 +80,24 @@ func (ctx *TestContext) C1DynamicClient() *dynamic.DynamicClient {
 	return ctx.Clusters["c1"].DynamicClient
 }
 
+func (ctx *TestContext) C1CtrlClient() client.Client {
+	return ctx.Clusters["c1"].CtrlClient
+}
+
 func (ctx *TestContext) C1Kubeconfig() string {
 	return ctx.Config.Clusters["c1"].KubeconfigPath
 }
 
-func (ctx *TestContext) C2Client() *kubernetes.Clientset {
+func (ctx *TestContext) C2K8sClientSet() *kubernetes.Clientset {
 	return ctx.Clusters["c2"].K8sClientSet
 }
 
 func (ctx *TestContext) C2DynamicClient() *dynamic.DynamicClient {
 	return ctx.Clusters["c2"].DynamicClient
+}
+
+func (ctx *TestContext) C2CtrlClient() client.Client {
+	return ctx.Clusters["c2"].CtrlClient
 }
 
 func (ctx *TestContext) C2Kubeconfig() string {
