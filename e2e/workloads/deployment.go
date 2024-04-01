@@ -2,6 +2,8 @@ package workloads
 
 import (
 	"github.com/ramendr/ramen/e2e/util"
+
+	channelv1 "open-cluster-management.io/multicloud-operators-channel/pkg/apis/apps/v1"
 )
 
 type Deployment struct {
@@ -13,18 +15,23 @@ type Deployment struct {
 	PVCLabel         string // busybox
 	PlacementName    string
 	ChannelNamespace string
+	ChannelName      string
+	ChannelType      channelv1.ChannelType
 
 	Ctx *util.TestContext
 }
 
 func (w *Deployment) Init() {
 	w.RepoURL = "https://github.com/ramendr/ocm-ramen-samples.git"
-	w.Path = "subscription/deployment-k8s-regional-rbd"
+	w.Path = "workloads/deployment/k8s-regional-rbd"
 	w.Revision = "main"
 	w.Name = "deployment-rbd"
 	w.Namespace = "deployment-rbd"
 	w.PVCLabel = "busybox"
 	w.PlacementName = "placement"
+	w.ChannelName = "ramen-gitops"
+	w.ChannelNamespace = "ramen-samples"
+	w.ChannelType = channelv1.ChannelTypeGitHub
 }
 
 func (w *Deployment) GetName() string {
@@ -67,19 +74,19 @@ func (w *Deployment) Health() error {
 }
 
 func (w *Deployment) Deploy() error {
-	err := w.createNamespace(w.ChannelNamespace)
+	// err := w.createNamespace(w.ChannelNamespace)
+	// if err != nil {
+	// 	return err
+	// }
+	// err = w.createChannel()
+	// if err != nil {
+	// 	return err
+	// }
+	err := w.createNamespace(w.Namespace)
 	if err != nil {
 		return err
 	}
-	err = w.createChannel()
-	if err != nil {
-		return err
-	}
-	err = w.createNamespace(w.Namespace)
-	if err != nil {
-		return err
-	}
-	err = w.createSubscription()
+	err = w.createManagedClusterSetBinding()
 	if err != nil {
 		return err
 	}
@@ -87,7 +94,7 @@ func (w *Deployment) Deploy() error {
 	if err != nil {
 		return err
 	}
-	err = w.createManagedClusterSetBinding()
+	err = w.createSubscription()
 	if err != nil {
 		return err
 	}
@@ -96,30 +103,37 @@ func (w *Deployment) Deploy() error {
 }
 
 func (w *Deployment) Undeploy() error {
-	err := w.deleteManagedClusterSetBinding()
+
+	//util.Pause()
+	err := w.deleteSubscription()
 	if err != nil {
 		return err
 	}
+	//util.Pause()
 	err = w.deletePlacement()
 	if err != nil {
 		return err
 	}
-	err = w.deleteSubscription()
+	//util.Pause()
+	err = w.deleteManagedClusterSetBinding()
 	if err != nil {
 		return err
 	}
+	//util.Pause()
 	err = w.deleteNamespace(w.Namespace)
 	if err != nil {
 		return err
 	}
-	err = w.deleteChannel()
-	if err != nil {
-		return err
-	}
-	err = w.deleteNamespace(w.ChannelNamespace)
-	if err != nil {
-		return err
-	}
+	//util.Pause()
+	// err = w.deleteChannel()
+	// if err != nil {
+	// 	return err
+	// }
+	//util.Pause()
+	// err = w.deleteNamespace(w.ChannelNamespace)
+	// if err != nil {
+	// 	return err
+	// }
 
 	return nil
 }

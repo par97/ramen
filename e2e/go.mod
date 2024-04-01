@@ -14,6 +14,8 @@ require (
 	k8s.io/apimachinery v0.29.2
 	k8s.io/client-go v12.0.0+incompatible
 	open-cluster-management.io/api v0.13.0
+	open-cluster-management.io/multicloud-operators-channel v0.10.1-0.20230316173315-10f48e51f3aa
+	open-cluster-management.io/multicloud-operators-subscription v0.13.0
 	sigs.k8s.io/controller-runtime v0.16.3
 )
 
@@ -26,6 +28,7 @@ require (
 	github.com/emicklei/go-restful/v3 v3.11.3 // indirect
 	github.com/evanphx/json-patch/v5 v5.8.0 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
+	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32 // indirect
 	github.com/go-jose/go-jose/v3 v3.0.3 // indirect
 	github.com/go-logr/zapr v1.3.0 // indirect
 	github.com/go-openapi/jsonpointer v0.20.3 // indirect
