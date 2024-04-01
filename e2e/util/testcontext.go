@@ -9,6 +9,17 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	// Placement
+	ocmclusterv1beta1 "open-cluster-management.io/api/cluster/v1beta1"
+	// ManagedClusterSetBinding
+	ocmclusterv1beta2 "open-cluster-management.io/api/cluster/v1beta2"
+	// PlacementRule
+	placementrule "open-cluster-management.io/multicloud-operators-subscription/pkg/apis/apps/placementrule/v1"
+	// Channel
+	channel "open-cluster-management.io/multicloud-operators-channel/pkg/apis"
+	// Subscription
+	subscription "open-cluster-management.io/multicloud-operators-subscription/pkg/apis"
 )
 
 type Config struct {
@@ -47,6 +58,12 @@ func GetClientSetFromKubeConfigPath(kubeconfigPath string) (*kubernetes.Clientse
 	if err != nil {
 		return nil, nil, nil, err
 	}
+
+	ocmclusterv1beta1.AddToScheme(scheme.Scheme)
+	ocmclusterv1beta2.AddToScheme(scheme.Scheme)
+	placementrule.AddToScheme(scheme.Scheme)
+	channel.AddToScheme(scheme.Scheme)
+	subscription.AddToScheme(scheme.Scheme)
 
 	ctrlClient, err := client.New(config, client.Options{Scheme: scheme.Scheme})
 	if err != nil {

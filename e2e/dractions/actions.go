@@ -55,6 +55,10 @@ func (r DRActions) EnableProtection(w workloads.Workload, d deployers.Deployer) 
 		// otherwise if we first add ocm disable annotation then it might not
 		// yet be handled by ocm and thus PlacementSatisfied=false
 
+		if placement.Annotations == nil {
+			placement.Annotations = make(map[string]string)
+		}
+
 		placement.Annotations[OCM_SCHEDULING_DISABLE] = "true"
 
 		r.Ctx.Log.Info("update placement " + placementName + " annotation")

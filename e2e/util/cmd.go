@@ -1,6 +1,7 @@
 package util
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
 	"os"
@@ -28,4 +29,11 @@ func RunCommand(cmd *exec.Cmd) (string, error) {
 		fmt.Println("====== cmd end ======")
 	}
 	return outStr, nil
+}
+
+func Pause() {
+	fmt.Print("Pause. Press any key to continue: ")
+	input := bufio.NewScanner(os.Stdin)
+	input.Scan()
+	fmt.Println(input.Text())
 }
