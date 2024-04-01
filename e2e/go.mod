@@ -14,7 +14,7 @@ require (
 	k8s.io/apimachinery v0.29.2
 	k8s.io/client-go v12.0.0+incompatible
 	open-cluster-management.io/api v0.13.0
-	open-cluster-management.io/multicloud-operators-channel v0.10.1-0.20230316173315-10f48e51f3aa
+	open-cluster-management.io/multicloud-operators-channel v0.13.0
 	open-cluster-management.io/multicloud-operators-subscription v0.13.0
 	sigs.k8s.io/controller-runtime v0.16.3
 )

@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 
@@ -30,8 +31,11 @@ func (w *Deployment) createNamespace(namespace string) error {
 
 	_, err := w.Ctx.HubK8sClientSet().CoreV1().Namespaces().Create(context.Background(), objNs, metav1.CreateOptions{})
 	if err != nil {
-		fmt.Printf("err: %v\n", err)
-		return err
+		if !errors.IsAlreadyExists(err) {
+			fmt.Printf("err: %v\n", err)
+			return err
+		}
+		w.Ctx.Log.Info("namespace " + namespace + " already Exists")
 	}
 
 	return nil
@@ -61,11 +65,12 @@ func (w *Deployment) createNamespace(namespace string) error {
 		return nil
 	}
 */
+
 func (w *Deployment) createSubscription() error {
 	w.Ctx.Log.Info("enter Deployment createSubscription")
 
 	labels := make(map[string]string)
-	labels["apps"] = "deployment-rbd"
+	labels["apps"] = w.Name
 
 	annotations := make(map[string]string)
 	annotations["apps.open-cluster-management.io/github-branch"] = w.Revision
@@ -95,8 +100,11 @@ func (w *Deployment) createSubscription() error {
 
 	err := w.Ctx.HubCtrlClient().Create(context.Background(), objSubscription)
 	if err != nil {
-		fmt.Printf("err: %v\n", err)
-		return err
+		if !errors.IsAlreadyExists(err) {
+			fmt.Printf("err: %v\n", err)
+			return err
+		}
+		w.Ctx.Log.Info("placement " + objSubscription.ObjectMeta.Name + " already Exists")
 	}
 
 	return nil
@@ -125,8 +133,11 @@ func (w *Deployment) createPlacement() error {
 
 	err := w.Ctx.HubCtrlClient().Create(context.Background(), objPlacement)
 	if err != nil {
-		fmt.Printf("err: %v\n", err)
-		return err
+		if !errors.IsAlreadyExists(err) {
+			fmt.Printf("err: %v\n", err)
+			return err
+		}
+		w.Ctx.Log.Info("placement " + objPlacement.ObjectMeta.Name + " already Exists")
 	}
 
 	return nil
@@ -151,8 +162,11 @@ func (w *Deployment) createManagedClusterSetBinding() error {
 
 	err := w.Ctx.HubCtrlClient().Create(context.Background(), objMCSB)
 	if err != nil {
-		fmt.Printf("err: %v\n", err)
-		return err
+		if !errors.IsAlreadyExists(err) {
+			fmt.Printf("err: %v\n", err)
+			return err
+		}
+		w.Ctx.Log.Info("managedClusterSetBinding " + objMCSB.ObjectMeta.Name + " already Exists")
 	}
 
 	return nil
@@ -163,10 +177,12 @@ func (w *Deployment) deleteNamespace(namespace string) error {
 
 	err := w.Ctx.HubK8sClientSet().CoreV1().Namespaces().Delete(context.Background(), namespace, metav1.DeleteOptions{})
 	if err != nil {
-		fmt.Printf("err: %v\n", err)
-		return err
+		if !errors.IsNotFound(err) {
+			fmt.Printf("err: %v\n", err)
+			return err
+		}
+		w.Ctx.Log.Info("namespace " + namespace + " not found")
 	}
-
 	return nil
 }
 
@@ -182,8 +198,12 @@ func (w *Deployment) deleteChannel() error {
 
 	err := w.Ctx.HubCtrlClient().Get(context.Background(), key, objChannel)
 	if err != nil {
-		fmt.Printf("err: %v\n", err)
-		return err
+		if !errors.IsNotFound(err) {
+			fmt.Printf("err: %v\n", err)
+			return err
+		}
+		w.Ctx.Log.Info("channel " + w.ChannelName + " not found")
+		return nil
 	}
 
 	err = w.Ctx.HubCtrlClient().Delete(context.Background(), objChannel)
@@ -207,8 +227,12 @@ func (w *Deployment) deleteSubscription() error {
 
 	err := w.Ctx.HubCtrlClient().Get(context.Background(), key, objSubscription)
 	if err != nil {
-		fmt.Printf("err: %v\n", err)
-		return err
+		if !errors.IsNotFound(err) {
+			fmt.Printf("err: %v\n", err)
+			return err
+		}
+		w.Ctx.Log.Info("subscription " + "subscription" + " not found")
+		return nil
 	}
 
 	err = w.Ctx.HubCtrlClient().Delete(context.Background(), objSubscription)
@@ -232,8 +256,12 @@ func (w *Deployment) deletePlacement() error {
 
 	err := w.Ctx.HubCtrlClient().Get(context.Background(), key, objPlacement)
 	if err != nil {
-		fmt.Printf("err: %v\n", err)
-		return err
+		if !errors.IsNotFound(err) {
+			fmt.Printf("err: %v\n", err)
+			return err
+		}
+		w.Ctx.Log.Info("placement " + w.PlacementName + " not found")
+		return nil
 	}
 
 	err = w.Ctx.HubCtrlClient().Delete(context.Background(), objPlacement)
@@ -257,8 +285,12 @@ func (w *Deployment) deleteManagedClusterSetBinding() error {
 
 	err := w.Ctx.HubCtrlClient().Get(context.Background(), key, objMCSB)
 	if err != nil {
-		fmt.Printf("err: %v\n", err)
-		return err
+		if !errors.IsNotFound(err) {
+			fmt.Printf("err: %v\n", err)
+			return err
+		}
+		w.Ctx.Log.Info("managedClusterSetBinding " + "default" + " not found")
+		return nil
 	}
 
 	err = w.Ctx.HubCtrlClient().Delete(context.Background(), objMCSB)
