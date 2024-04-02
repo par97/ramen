@@ -6,19 +6,33 @@ import (
 )
 
 type Subscription struct {
-	branch  string
-	path    string
-	channel string
-	Ctx     *util.TestContext
+	// branch  string
+	// path    string
+	// channel string
+	Ctx *util.TestContext
 
 	ChannelName      string
 	ChannelNamespace string
-	// ChannelType = channelv1.ChannelTypeGitHub
+	SubscriptionName string
+
+	AppName   string // deployment-rbd
+	Namespace string // deployment-rbd
 }
 
 func (s *Subscription) Init() {
 	s.ChannelName = "ramen-gitops"
 	s.ChannelNamespace = "ramen-samples"
+	s.SubscriptionName = "subscription"
+	s.AppName = "deployment-rbd"
+	s.Namespace = "deployment-rbd"
+}
+
+func (s Subscription) GetAppName() string {
+	return s.AppName
+}
+
+func (s Subscription) GetNameSpace() string {
+	return s.Namespace
 }
 
 func (s Subscription) Deploy(w workloads.Workload) error {
@@ -29,16 +43,17 @@ func (s Subscription) Deploy(w workloads.Workload) error {
 	// - Kustomize the Workload; call Workload.Kustomize(StorageType)
 	// Address namespace/label/suffix as needed for various resources
 	s.Ctx.Log.Info("enter Subscription Deploy")
+
 	// w.Kustomize()
-	err := s.createNamespace(w.GetNameSpace())
+	err := s.createNamespace()
 	if err != nil {
 		return err
 	}
-	err = s.createManagedClusterSetBinding(w)
+	err = s.createManagedClusterSetBinding()
 	if err != nil {
 		return err
 	}
-	err = s.createPlacement(w)
+	err = s.createPlacement()
 	if err != nil {
 		return err
 	}
@@ -54,19 +69,19 @@ func (s Subscription) Undeploy(w workloads.Workload) error {
 	// Delete Subscription, Placement, Binding
 	s.Ctx.Log.Info("enter Subscription Undeploy")
 
-	err := s.deleteSubscription(w)
+	err := s.deleteSubscription()
 	if err != nil {
 		return err
 	}
-	err = s.deletePlacement(w)
+	err = s.deletePlacement()
 	if err != nil {
 		return err
 	}
-	err = s.deleteManagedClusterSetBinding(w)
+	err = s.deleteManagedClusterSetBinding()
 	if err != nil {
 		return err
 	}
-	err = s.deleteNamespace(w.GetNameSpace())
+	err = s.deleteNamespace()
 	if err != nil {
 		return err
 	}

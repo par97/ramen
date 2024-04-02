@@ -7,8 +7,8 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 
+	"github.com/ramendr/ramen/e2e/util"
 	"github.com/ramendr/ramen/e2e/workloads"
 	ocmclusterv1beta1 "open-cluster-management.io/api/cluster/v1beta1"
 	ocmclusterv1beta2 "open-cluster-management.io/api/cluster/v1beta2"
@@ -16,36 +16,29 @@ import (
 	subscriptionv1 "open-cluster-management.io/multicloud-operators-subscription/pkg/apis/apps/v1"
 )
 
-func (s *Subscription) createNamespace(namespace string) error {
-	s.Ctx.Log.Info("enter Deployment createNamespace " + namespace)
+func (s *Subscription) createNamespace() error {
 
 	objNs := &corev1.Namespace{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "NameSpace",
-			APIVersion: "v1",
-		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name: namespace,
+			Name: s.Namespace,
 		},
 	}
 
-	_, err := s.Ctx.HubK8sClientSet().CoreV1().Namespaces().Create(context.Background(), objNs, metav1.CreateOptions{})
+	err := s.Ctx.HubCtrlClient().Create(context.Background(), objNs)
 	if err != nil {
 		if !errors.IsAlreadyExists(err) {
 			fmt.Printf("err: %v\n", err)
 			return err
 		}
-		s.Ctx.Log.Info("namespace " + namespace + " already Exists")
+		s.Ctx.Log.Info("namespace " + s.Namespace + " already Exists")
 	}
-
 	return nil
 }
 
 func (s *Subscription) createSubscription(w workloads.Workload) error {
-	s.Ctx.Log.Info("enter Deployment createSubscription")
 
 	labels := make(map[string]string)
-	labels["apps"] = w.GetName()
+	labels["apps"] = s.AppName
 
 	annotations := make(map[string]string)
 	annotations["apps.open-cluster-management.io/github-branch"] = w.GetRevision()
@@ -54,7 +47,7 @@ func (s *Subscription) createSubscription(w workloads.Workload) error {
 	// Construct PlacementRef
 	objReplacementRef := corev1.ObjectReference{
 		Kind: "Placement",
-		Name: w.GetPlacementName(),
+		Name: util.DefaultPlacement,
 	}
 
 	objPlacementRulePlacement := &placementrulev1.Placement{}
@@ -62,13 +55,13 @@ func (s *Subscription) createSubscription(w workloads.Workload) error {
 
 	objSubscription := &subscriptionv1.Subscription{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:        "subscription",
-			Namespace:   w.GetNameSpace(),
+			Name:        s.SubscriptionName,
+			Namespace:   s.Namespace,
 			Labels:      labels,
 			Annotations: annotations,
 		},
 		Spec: subscriptionv1.SubscriptionSpec{
-			Channel:   s.ChannelName + "/" + s.ChannelName,
+			Channel:   s.ChannelNamespace + "/" + s.ChannelName,
 			Placement: objPlacementRulePlacement,
 		},
 	}
@@ -85,19 +78,18 @@ func (s *Subscription) createSubscription(w workloads.Workload) error {
 	return nil
 }
 
-func (s *Subscription) createPlacement(w workloads.Workload) error {
-	s.Ctx.Log.Info("enter Deployment createPlacement")
+func (s *Subscription) createPlacement() error {
 
 	labels := make(map[string]string)
-	labels["apps"] = w.GetName()
+	labels["apps"] = s.AppName
 
 	arrayClusterSets := []string{"default"}
 	var numClusters int32 = 1
 
 	objPlacement := &ocmclusterv1beta1.Placement{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      w.GetPlacementName(),
-			Namespace: w.GetNameSpace(),
+			Name:      util.DefaultPlacement,
+			Namespace: s.Namespace,
 			Labels:    labels,
 		},
 		Spec: ocmclusterv1beta1.PlacementSpec{
@@ -114,20 +106,18 @@ func (s *Subscription) createPlacement(w workloads.Workload) error {
 		}
 		s.Ctx.Log.Info("placement " + objPlacement.ObjectMeta.Name + " already Exists")
 	}
-
 	return nil
 }
 
-func (s *Subscription) createManagedClusterSetBinding(w workloads.Workload) error {
-	s.Ctx.Log.Info("enter Deployment createManagedClusterSetBinding")
+func (s *Subscription) createManagedClusterSetBinding() error {
 
 	labels := make(map[string]string)
-	labels["apps"] = w.GetName()
+	labels["apps"] = s.AppName
 
 	objMCSB := &ocmclusterv1beta2.ManagedClusterSetBinding{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "default",
-			Namespace: w.GetNameSpace(),
+			Namespace: s.Namespace,
 			Labels:    labels,
 		},
 		Spec: ocmclusterv1beta2.ManagedClusterSetBindingSpec{
@@ -143,108 +133,86 @@ func (s *Subscription) createManagedClusterSetBinding(w workloads.Workload) erro
 		}
 		s.Ctx.Log.Info("managedClusterSetBinding " + objMCSB.ObjectMeta.Name + " already Exists")
 	}
-
 	return nil
 }
 
-func (s *Subscription) deleteNamespace(namespace string) error {
-	s.Ctx.Log.Info("enter Deployment deleteNamespace " + namespace)
+func (s *Subscription) deleteNamespace() error {
 
-	err := s.Ctx.HubK8sClientSet().CoreV1().Namespaces().Delete(context.Background(), namespace, metav1.DeleteOptions{})
+	objNs := &corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: s.Namespace,
+		},
+	}
+	err := s.Ctx.HubCtrlClient().Delete(context.Background(), objNs)
 	if err != nil {
 		if !errors.IsNotFound(err) {
 			fmt.Printf("err: %v\n", err)
 			return err
 		}
-		s.Ctx.Log.Info("namespace " + namespace + " not found")
-	}
-	return nil
-}
-
-func (s *Subscription) deleteSubscription(w workloads.Workload) error {
-	s.Ctx.Log.Info("enter Deployment deleteSubscription")
-
-	objSubscription := &subscriptionv1.Subscription{}
-
-	key := types.NamespacedName{
-		Name:      w.GetSubscriptionName(),
-		Namespace: w.GetNameSpace(),
-	}
-
-	err := s.Ctx.HubCtrlClient().Get(context.Background(), key, objSubscription)
-	if err != nil {
-		if !errors.IsNotFound(err) {
-			fmt.Printf("err: %v\n", err)
-			return err
-		}
-		s.Ctx.Log.Info("subscription " + w.GetSubscriptionName() + " not found")
-		return nil
-	}
-
-	err = s.Ctx.HubCtrlClient().Delete(context.Background(), objSubscription)
-	if err != nil {
-		fmt.Printf("err: %v\n", err)
-		return err
+		s.Ctx.Log.Info("namespace " + s.Namespace + " not found")
 	}
 
 	return nil
 }
 
-func (s *Subscription) deletePlacement(w workloads.Workload) error {
-	s.Ctx.Log.Info("enter Deployment deletePlacement")
+func (s *Subscription) deleteSubscription() error {
 
-	objPlacement := &ocmclusterv1beta1.Placement{}
-
-	key := types.NamespacedName{
-		Name:      w.GetPlacementName(),
-		Namespace: w.GetNameSpace(),
+	objSubscription := &subscriptionv1.Subscription{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      s.SubscriptionName,
+			Namespace: s.Namespace,
+		},
 	}
 
-	err := s.Ctx.HubCtrlClient().Get(context.Background(), key, objPlacement)
+	err := s.Ctx.HubCtrlClient().Delete(context.Background(), objSubscription)
 	if err != nil {
 		if !errors.IsNotFound(err) {
 			fmt.Printf("err: %v\n", err)
 			return err
 		}
-		s.Ctx.Log.Info("placement " + w.GetPlacementName() + " not found")
-		return nil
-	}
-
-	err = s.Ctx.HubCtrlClient().Delete(context.Background(), objPlacement)
-	if err != nil {
-		fmt.Printf("err: %v\n", err)
-		return err
+		s.Ctx.Log.Info("subscription " + s.SubscriptionName + " not found")
 	}
 
 	return nil
 }
 
-func (s *Subscription) deleteManagedClusterSetBinding(w workloads.Workload) error {
-	s.Ctx.Log.Info("enter Deployment deleteManagedClusterSetBinding")
+func (s *Subscription) deletePlacement() error {
 
-	objMCSB := &ocmclusterv1beta2.ManagedClusterSetBinding{}
-
-	key := types.NamespacedName{
-		Name:      "default",
-		Namespace: w.GetNameSpace(),
+	objPlacement := &ocmclusterv1beta1.Placement{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      util.DefaultPlacement,
+			Namespace: s.Namespace,
+		},
 	}
 
-	err := s.Ctx.HubCtrlClient().Get(context.Background(), key, objMCSB)
+	err := s.Ctx.HubCtrlClient().Delete(context.Background(), objPlacement)
 	if err != nil {
 		if !errors.IsNotFound(err) {
 			fmt.Printf("err: %v\n", err)
 			return err
 		}
-		s.Ctx.Log.Info("managedClusterSetBinding " + "default" + " not found")
-		return nil
+		s.Ctx.Log.Info("placement " + util.DefaultPlacement + " not found")
+	}
+	return nil
+}
+
+func (s *Subscription) deleteManagedClusterSetBinding() error {
+
+	objMCSB := &ocmclusterv1beta2.ManagedClusterSetBinding{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "default",
+			Namespace: s.Namespace,
+		},
 	}
 
-	err = s.Ctx.HubCtrlClient().Delete(context.Background(), objMCSB)
+	err := s.Ctx.HubCtrlClient().Delete(context.Background(), objMCSB)
 	if err != nil {
-		fmt.Printf("err: %v\n", err)
-		return err
+		if !errors.IsNotFound(err) {
+			fmt.Printf("err: %v\n", err)
+			return err
+		}
+		s.Ctx.Log.Info("managedClusterSetBinding default not found")
 	}
-
 	return nil
 }
 

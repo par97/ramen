@@ -53,15 +53,14 @@ func configContext(ctx *util.TestContext, config *util.Config) error {
 	ctx.Clusters = make(util.Clusters)
 
 	for clusterName, cluster := range config.Clusters {
-		k8sClientSet, dynamicClient, ctrlClient, err := util.GetClientSetFromKubeConfigPath(cluster.KubeconfigPath)
+		k8sClientSet, ctrlClient, err := util.GetClientSetFromKubeConfigPath(cluster.KubeconfigPath)
 		if err != nil {
 			return err
 		}
 
 		ctx.Clusters[clusterName] = &util.Cluster{
-			K8sClientSet:  k8sClientSet,
-			DynamicClient: dynamicClient,
-			CtrlClient:    ctrlClient,
+			K8sClientSet: k8sClientSet,
+			CtrlClient:   ctrlClient,
 		}
 	}
 

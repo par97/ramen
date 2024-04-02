@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"time"
 
-	"k8s.io/client-go/dynamic"
 	"open-cluster-management.io/api/cluster/v1beta1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func (r DRActions) waitPlacementDecision(client *dynamic.DynamicClient, namespace string, placementName string) (*v1beta1.Placement, string, error) {
+func (r DRActions) waitPlacementDecision(client client.Client, namespace string, placementName string) (*v1beta1.Placement, string, error) {
 
 	timeout := 300 //seconds
 	interval := 30 //seconds
@@ -39,7 +39,7 @@ func (r DRActions) waitPlacementDecision(client *dynamic.DynamicClient, namespac
 	}
 }
 
-func (r DRActions) waitDRPCReady(client *dynamic.DynamicClient, namespace string, drpcName string) error {
+func (r DRActions) waitDRPCReady(client client.Client, namespace string, drpcName string) error {
 
 	timeout := 300 //seconds
 	interval := 30 //seconds
@@ -83,7 +83,7 @@ func (r DRActions) waitDRPCReady(client *dynamic.DynamicClient, namespace string
 	}
 }
 
-func (r DRActions) waitDRPCPhase(client *dynamic.DynamicClient, namespace string, drpcName string, phase string) error {
+func (r DRActions) waitDRPCPhase(client client.Client, namespace string, drpcName string, phase string) error {
 
 	timeout := 600 //seconds
 	interval := 30 //seconds

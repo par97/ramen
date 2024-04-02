@@ -6,100 +6,60 @@ import (
 
 	ramen "github.com/ramendr/ramen/api/v1alpha1"
 	"k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/client-go/dynamic"
+	"k8s.io/apimachinery/pkg/types"
 	clusterv1beta1 "open-cluster-management.io/api/cluster/v1beta1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func getPlacement(client *dynamic.DynamicClient, namespace, name string) (*clusterv1beta1.Placement, error) {
+func getPlacement(ctrlClient client.Client, namespace, name string) (*clusterv1beta1.Placement, error) {
 
-	resource := schema.GroupVersionResource{Group: "cluster.open-cluster-management.io", Version: "v1beta1", Resource: "placements"}
-	unstr, err := client.Resource(resource).Namespace(namespace).Get(context.Background(), name, metav1.GetOptions{})
+	placement := &clusterv1beta1.Placement{}
+	key := types.NamespacedName{Namespace: namespace, Name: name}
+	err := ctrlClient.Get(context.Background(), key, placement)
 	if err != nil {
-		fmt.Printf("err: %v\n", err)
-		return nil, fmt.Errorf("could not get placement CR")
+		fmt.Println(err)
+		return nil, err
 	}
-
-	placement := clusterv1beta1.Placement{}
-	err = runtime.DefaultUnstructuredConverter.FromUnstructured(unstr.UnstructuredContent(), &placement)
-	if err != nil {
-		fmt.Printf("err: %v\n", err)
-		return nil, fmt.Errorf("could not FromUnstructured in func getPlacment")
-	}
-
-	return &placement, nil
+	return placement, nil
 }
 
-func updatePlacement(client *dynamic.DynamicClient, placement *clusterv1beta1.Placement) error {
+func updatePlacement(ctrlClient client.Client, placement *clusterv1beta1.Placement) error {
 
-	tempMap, err := runtime.DefaultUnstructuredConverter.ToUnstructured(placement)
-	if err != nil {
-		fmt.Printf("err: %v\n", err)
-		return fmt.Errorf("could not ToUnstructured")
-	}
-
-	unstr := &unstructured.Unstructured{Object: tempMap}
-	resource := schema.GroupVersionResource{Group: "cluster.open-cluster-management.io", Version: "v1beta1", Resource: "placements"}
-	_, err = client.Resource(resource).Namespace(placement.GetNamespace()).Update(context.Background(), unstr, metav1.UpdateOptions{})
+	err := ctrlClient.Update(context.Background(), placement)
 	if err != nil {
 		fmt.Printf("err: %v\n", err)
 		return fmt.Errorf("could not update placment")
 	}
-
 	return nil
 }
 
-func getPlacementDecision(client *dynamic.DynamicClient, namespace, name string) (*clusterv1beta1.PlacementDecision, error) {
-	resource := schema.GroupVersionResource{Group: "cluster.open-cluster-management.io", Version: "v1beta1", Resource: "placementdecisions"}
-	unstr, err := client.Resource(resource).Namespace(namespace).Get(context.Background(), name, metav1.GetOptions{})
-	if err != nil {
-		fmt.Printf("err: %v\n", err)
-		return nil, fmt.Errorf("could not get placementDecision CR")
-	}
+func getPlacementDecision(ctrlClient client.Client, namespace, name string) (*clusterv1beta1.PlacementDecision, error) {
 
-	placementDecision := clusterv1beta1.PlacementDecision{}
-	err = runtime.DefaultUnstructuredConverter.FromUnstructured(unstr.UnstructuredContent(), &placementDecision)
+	placementDecision := &clusterv1beta1.PlacementDecision{}
+	key := types.NamespacedName{Namespace: namespace, Name: name}
+	err := ctrlClient.Get(context.Background(), key, placementDecision)
 	if err != nil {
-		fmt.Printf("err: %v\n", err)
-		return nil, fmt.Errorf("could not FromUnstructured in func getPlacementDecision")
+		fmt.Println(err)
+		return nil, err
 	}
-
-	return &placementDecision, nil
+	return placementDecision, nil
 }
 
-func getDRPC(client *dynamic.DynamicClient, namespace, name string) (*ramen.DRPlacementControl, error) {
-	resource := schema.GroupVersionResource{Group: "ramendr.openshift.io", Version: "v1alpha1", Resource: "drplacementcontrols"}
-	unstr, err := client.Resource(resource).Namespace(namespace).Get(context.Background(), name, metav1.GetOptions{})
-	if err != nil {
-		fmt.Printf("err: %v\n", err)
-		return nil, fmt.Errorf("could not get drpc CR")
-	}
+func getDRPC(ctrlClient client.Client, namespace, name string) (*ramen.DRPlacementControl, error) {
 
-	drpc := ramen.DRPlacementControl{}
-	err = runtime.DefaultUnstructuredConverter.FromUnstructured(unstr.UnstructuredContent(), &drpc)
+	drpc := &ramen.DRPlacementControl{}
+	key := types.NamespacedName{Namespace: namespace, Name: name}
+	err := ctrlClient.Get(context.Background(), key, drpc)
 	if err != nil {
-		fmt.Printf("err: %v\n", err)
-		return nil, fmt.Errorf("could not FromUnstructured in func getDRPlacementControl")
+		fmt.Println(err)
+		return nil, err
 	}
-
-	return &drpc, nil
+	return drpc, nil
 }
 
-func (r DRActions) createDRPC(client *dynamic.DynamicClient, drpc *ramen.DRPlacementControl) error {
+func (r DRActions) createDRPC(ctrlClient client.Client, drpc *ramen.DRPlacementControl) error {
 
-	tempMap, err := runtime.DefaultUnstructuredConverter.ToUnstructured(drpc)
-	if err != nil {
-		fmt.Printf("err: %v\n", err)
-		return fmt.Errorf("could not ToUnstructured")
-	}
-
-	unstr := &unstructured.Unstructured{Object: tempMap}
-	resource := schema.GroupVersionResource{Group: "ramendr.openshift.io", Version: "v1alpha1", Resource: "drplacementcontrols"}
-	_, err = client.Resource(resource).Namespace(drpc.GetNamespace()).Create(context.Background(), unstr, metav1.CreateOptions{})
-
+	err := ctrlClient.Create(context.Background(), drpc)
 	if err != nil {
 		if !errors.IsAlreadyExists(err) {
 			fmt.Printf("err: %v\n", err)
@@ -107,55 +67,49 @@ func (r DRActions) createDRPC(client *dynamic.DynamicClient, drpc *ramen.DRPlace
 		}
 		r.Ctx.Log.Info("drpc " + drpc.Name + " already Exists")
 	}
-
 	return nil
 }
 
-func updateDRPC(client *dynamic.DynamicClient, drpc *ramen.DRPlacementControl) error {
+func updateDRPC(ctrlClient client.Client, drpc *ramen.DRPlacementControl) error {
 
-	tempMap, err := runtime.DefaultUnstructuredConverter.ToUnstructured(drpc)
+	err := ctrlClient.Update(context.Background(), drpc)
 	if err != nil {
 		fmt.Printf("err: %v\n", err)
-		return fmt.Errorf("could not ToUnstructured")
+		return fmt.Errorf("could not update placment")
 	}
-
-	unstr := &unstructured.Unstructured{Object: tempMap}
-	resource := schema.GroupVersionResource{Group: "ramendr.openshift.io", Version: "v1alpha1", Resource: "drplacementcontrols"}
-	_, err = client.Resource(resource).Namespace(drpc.GetNamespace()).Update(context.Background(), unstr, metav1.UpdateOptions{})
-	if err != nil {
-		fmt.Printf("err: %v\n", err)
-		return fmt.Errorf("could not update drpc CR")
-	}
-
 	return nil
 }
 
-func getDRPolicy(client *dynamic.DynamicClient, name string) (*ramen.DRPolicy, error) {
-	resource := schema.GroupVersionResource{Group: "ramendr.openshift.io", Version: "v1alpha1", Resource: "drpolicies"}
-	unstr, err := client.Resource(resource).Get(context.Background(), name, metav1.GetOptions{})
-	if err != nil {
-		fmt.Printf("err: %v\n", err)
-		return nil, fmt.Errorf("could not get drpolicies")
-	}
+func getDRPolicy(ctrlClient client.Client, name string) (*ramen.DRPolicy, error) {
 
-	drpolicy := ramen.DRPolicy{}
-	err = runtime.DefaultUnstructuredConverter.FromUnstructured(unstr.UnstructuredContent(), &drpolicy)
+	drpolicy := &ramen.DRPolicy{}
+	key := types.NamespacedName{Name: name}
+	err := ctrlClient.Get(context.Background(), key, drpolicy)
 	if err != nil {
-		fmt.Printf("err: %v\n", err)
-		return nil, fmt.Errorf("could not FromUnstructured in func getDRPolicy")
+		fmt.Println(err)
+		return nil, err
 	}
-
-	return &drpolicy, nil
+	return drpolicy, nil
 }
 
-func deleteDRPC(client *dynamic.DynamicClient, namespace, name string) error {
+func deleteDRPC(ctrlClient client.Client, namespace, name string) error {
 
-	resource := schema.GroupVersionResource{Group: "ramendr.openshift.io", Version: "v1alpha1", Resource: "drplacementcontrols"}
-	err := client.Resource(resource).Namespace(namespace).Delete(context.Background(), name, metav1.DeleteOptions{})
+	objDrpc := &ramen.DRPlacementControl{}
+	key := types.NamespacedName{Namespace: namespace, Name: name}
+	err := ctrlClient.Get(context.Background(), key, objDrpc)
 	if err != nil {
 		if !errors.IsNotFound(err) {
+			fmt.Printf("err: %v\n", err)
 			return err
 		}
+		fmt.Println("drpc " + name + " not found")
+		return nil
+	}
+
+	err = ctrlClient.Delete(context.Background(), objDrpc)
+	if err != nil {
+		fmt.Printf("err: %v\n", err)
+		return err
 	}
 	return nil
 }

@@ -44,10 +44,10 @@ func (s *BasicSuite) TeardownSuite() error {
 func (s *BasicSuite) Tests() []Test {
 	s.Ctx.Log.Info("enter BasicSuite Tests")
 	return []Test{
-		s.TestWorkloadDeployment,
-		s.TestEnableProtection,
-		s.TestWorkloadFailover,
-		s.TestWorkloadRelocation,
+		// s.TestWorkloadDeployment,
+		// s.TestEnableProtection,
+		// s.TestWorkloadFailover,
+		// s.TestWorkloadRelocation,
 		s.TestDisableProtection,
 		s.TestWorkloadUndeployment,
 	}

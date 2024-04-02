@@ -2,16 +2,14 @@ package suites
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"strings"
 
 	"github.com/ramendr/ramen/e2e/util"
 	rookv1 "github.com/rook/rook/pkg/apis/ceph.rook.io/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const ramenSystemNamespace = "ramen-system"
@@ -173,15 +171,14 @@ func CheckRamenSpokePodRunningStatus(k8sClient *kubernetes.Clientset) (bool, str
 func (s *PrecheckSuite) TestCephClusterStatus() error {
 	s.ctx.Log.Info("enter PrecheckSuite TestCephClusterStatus")
 
-	c1DynamicClient := s.ctx.C1DynamicClient()
-
-	err := CheckCephClusterRunningStatus(c1DynamicClient)
+	c1CtrlClient := s.ctx.C1CtrlClient()
+	err := CheckCephClusterRunningStatus(c1CtrlClient)
 	if err != nil {
 		return err
 	}
 
-	c2DynamicClient := s.ctx.C2DynamicClient()
-	err = CheckCephClusterRunningStatus(c2DynamicClient)
+	c2CtrlClient := s.ctx.C2CtrlClient()
+	err = CheckCephClusterRunningStatus(c2CtrlClient)
 	if err != nil {
 		return err
 	}
@@ -190,18 +187,16 @@ func (s *PrecheckSuite) TestCephClusterStatus() error {
 
 }
 
-func CheckCephClusterRunningStatus(client *dynamic.DynamicClient) error {
+func CheckCephClusterRunningStatus(ctrlClient client.Client) error {
 	rookNamespace := "rook-ceph"
 
-	resource := schema.GroupVersionResource{Group: "ceph.rook.io", Version: "v1", Resource: "cephclusters"}
-	resp, err := client.Resource(resource).Namespace(rookNamespace).List(context.TODO(), metav1.ListOptions{})
+	cephclusterList := &rookv1.CephClusterList{}
+
+	err := ctrlClient.List(context.Background(), cephclusterList, &client.ListOptions{Namespace: rookNamespace})
 	if err != nil {
 		return fmt.Errorf("could not list cephcluster")
-
 	}
-	respJson, _ := resp.MarshalJSON()
-	cephclusterList := rookv1.CephClusterList{}
-	json.Unmarshal(respJson, &cephclusterList)
+
 	if len(cephclusterList.Items) == 0 {
 		return fmt.Errorf("found 0 cephcluster")
 	}
@@ -212,6 +207,5 @@ func CheckCephClusterRunningStatus(client *dynamic.DynamicClient) error {
 	if phase != "Ready" {
 		return fmt.Errorf("cephcluster is not Ready")
 	}
-
 	return nil
 }

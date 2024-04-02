@@ -29,13 +29,13 @@ func (r DRActions) EnableProtection(w workloads.Workload, d deployers.Deployer) 
 	_, ok := d.(*deployers.Subscription)
 	if ok {
 
-		name := w.GetName()
-		namespace := w.GetNameSpace()
+		name := d.GetAppName()
+		namespace := d.GetNameSpace()
 		drPolicyName := util.DefaultDRPolicy
-		pvcLabel := w.GetPVCLabel()
-		placementName := w.GetPlacementName()
+		appname := w.GetAppName()
+		placementName := util.DefaultPlacement
 		drpcName := name + "-drpc"
-		client := r.Ctx.HubDynamicClient()
+		client := r.Ctx.HubCtrlClient()
 
 		placement, placementDecisionName, err := r.waitPlacementDecision(client, namespace, placementName)
 		if err != nil {
@@ -88,7 +88,7 @@ func (r DRActions) EnableProtection(w workloads.Workload, d deployers.Deployer) 
 					Name: placementName,
 				},
 				PVCSelector: metav1.LabelSelector{
-					MatchLabels: map[string]string{"appname": pvcLabel},
+					MatchLabels: map[string]string{"appname": appname},
 				},
 			},
 		}
@@ -117,11 +117,11 @@ func (r DRActions) DisableProtection(w workloads.Workload, d deployers.Deployer)
 	_, ok := d.(*deployers.Subscription)
 	if ok {
 
-		name := w.GetName()
-		namespace := w.GetNameSpace()
-		placementName := w.GetPlacementName()
+		name := d.GetAppName()
+		namespace := d.GetNameSpace()
+		placementName := util.DefaultPlacement
 		drpcName := name + "-drpc"
-		client := r.Ctx.HubDynamicClient()
+		client := r.Ctx.HubCtrlClient()
 
 		r.Ctx.Log.Info("delete drpc " + drpcName)
 		err := deleteDRPC(client, namespace, drpcName)
@@ -156,12 +156,12 @@ func (r DRActions) Failover(w workloads.Workload, d deployers.Deployer) error {
 	// Update DRPC
 	r.Ctx.Log.Info("enter dractions Failover")
 
-	name := w.GetName()
-	namespace := w.GetNameSpace()
+	name := d.GetAppName()
+	namespace := d.GetNameSpace()
 	//placementName := w.GetPlacementName()
 	drPolicyName := util.DefaultDRPolicy
 	drpcName := name + "-drpc"
-	client := r.Ctx.HubDynamicClient()
+	client := r.Ctx.HubCtrlClient()
 
 	// here we expect drpc should be ready before failover
 	err := r.waitDRPCReady(client, namespace, drpcName)
@@ -229,11 +229,11 @@ func (r DRActions) Relocate(w workloads.Workload, d deployers.Deployer) error {
 	// Update DRPC
 	r.Ctx.Log.Info("enter dractions Relocate")
 
-	name := w.GetName()
-	namespace := w.GetNameSpace()
+	name := d.GetAppName()
+	namespace := d.GetNameSpace()
 	//placementName := w.GetPlacementName()
 	drpcName := name + "-drpc"
-	client := r.Ctx.HubDynamicClient()
+	client := r.Ctx.HubCtrlClient()
 
 	// here we expect drpc should be ready before relocate
 	err := r.waitDRPCReady(client, namespace, drpcName)
