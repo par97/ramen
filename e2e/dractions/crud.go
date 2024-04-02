@@ -75,7 +75,7 @@ func updateDRPC(ctrlClient client.Client, drpc *ramen.DRPlacementControl) error 
 	err := ctrlClient.Update(context.Background(), drpc)
 	if err != nil {
 		fmt.Printf("err: %v\n", err)
-		return fmt.Errorf("could not update placment")
+		return fmt.Errorf("could not update placement")
 	}
 	return nil
 }
