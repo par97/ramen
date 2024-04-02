@@ -26,7 +26,7 @@ func (r DRActions) EnableProtection(w workloads.Workload, d deployers.Deployer) 
 	// Create DRPC, in desired namespace
 	r.Ctx.Log.Info("enter DRActions EnableProtection")
 
-	_, ok := d.(deployers.Subscription)
+	_, ok := d.(*deployers.Subscription)
 	if ok {
 
 		name := w.GetName()
@@ -114,7 +114,7 @@ func (r DRActions) DisableProtection(w workloads.Workload, d deployers.Deployer)
 	// update placement annotation
 	r.Ctx.Log.Info("enter DRActions DisableProtection")
 
-	_, ok := d.(deployers.Subscription)
+	_, ok := d.(*deployers.Subscription)
 	if ok {
 
 		name := w.GetName()

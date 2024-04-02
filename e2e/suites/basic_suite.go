@@ -24,11 +24,14 @@ func (s *BasicSuite) SetContext(ctx *util.TestContext) {
 func (s *BasicSuite) SetupSuite() error {
 	s.Ctx.Log.Info("enter BasicSuite SetupSuite")
 
-	deployment := &workloads.Deployment{}
+	deployment := &workloads.Deployment{Ctx: s.Ctx}
 	deployment.Init()
-	deployment.Ctx = s.Ctx
 	s.w = deployment
-	s.d = deployers.Subscription{Ctx: s.Ctx}
+
+	sub := &deployers.Subscription{Ctx: s.Ctx}
+	sub.Init()
+	s.d = sub
+
 	s.r = dractions.DRActions{Ctx: s.Ctx}
 	return nil
 }
@@ -52,7 +55,13 @@ func (s *BasicSuite) Tests() []Test {
 
 func (s *BasicSuite) TestWorkloadDeployment() error {
 	s.Ctx.Log.Info("enter BasicSuite TestWorkloadDeployment")
-	return s.d.Deploy(s.w)
+	err := s.d.Deploy(s.w)
+	if err != nil {
+		fmt.Printf("err: %v\n", err)
+		return err
+	}
+	s.Ctx.Log.Info("TestWorkloadDeployment: Pass")
+	return nil
 }
 
 func (s *BasicSuite) TestEnableProtection() error {
@@ -62,19 +71,30 @@ func (s *BasicSuite) TestEnableProtection() error {
 		fmt.Printf("err: %v\n", err)
 		return err
 	}
-
 	s.Ctx.Log.Info("TestEnableProtection: Pass")
 	return nil
 }
 
 func (s *BasicSuite) TestWorkloadFailover() error {
 	s.Ctx.Log.Info("enter BasicSuite TestWorkloadFailover")
-	return s.r.Failover(s.w, s.d)
+	err := s.r.Failover(s.w, s.d)
+	if err != nil {
+		fmt.Printf("err: %v\n", err)
+		return err
+	}
+	s.Ctx.Log.Info("TestWorkloadFailover: Pass")
+	return nil
 }
 
 func (s *BasicSuite) TestWorkloadRelocation() error {
 	s.Ctx.Log.Info("enter BasicSuite TestWorkloadRelocation")
-	return s.r.Relocate(s.w, s.d)
+	err := s.r.Relocate(s.w, s.d)
+	if err != nil {
+		fmt.Printf("err: %v\n", err)
+		return err
+	}
+	s.Ctx.Log.Info("TestWorkloadRelocation: Pass")
+	return nil
 }
 
 func (s *BasicSuite) TestDisableProtection() error {
@@ -84,12 +104,17 @@ func (s *BasicSuite) TestDisableProtection() error {
 		fmt.Printf("err: %v\n", err)
 		return err
 	}
-
 	s.Ctx.Log.Info("TestDisableProtection: Pass")
 	return nil
 }
 
 func (s *BasicSuite) TestWorkloadUndeployment() error {
 	s.Ctx.Log.Info("enter BasicSuite TestWorkloadUndeployment")
-	return s.d.Undeploy(s.w)
+	err := s.d.Undeploy(s.w)
+	if err != nil {
+		fmt.Printf("err: %v\n", err)
+		return err
+	}
+	s.Ctx.Log.Info("TestWorkloadUndeployment: Pass")
+	return nil
 }
