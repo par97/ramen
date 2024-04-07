@@ -46,6 +46,7 @@ templates:
     container_runtime: containerd
     network: "$network"
     memory: "4g"
+    disk_size: "50g"
     workers:
       - addons:
           - name: ocm-hub
