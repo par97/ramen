@@ -4,17 +4,23 @@ import (
 	"context"
 	"fmt"
 
+	argocdapi "github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1"
+	"github.com/ramendr/ramen/e2e/util"
+	"github.com/ramendr/ramen/e2e/workloads"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	"github.com/ramendr/ramen/e2e/util"
-	"github.com/ramendr/ramen/e2e/workloads"
 	ocmclusterv1beta1 "open-cluster-management.io/api/cluster/v1beta1"
 	ocmclusterv1beta2 "open-cluster-management.io/api/cluster/v1beta2"
 	placementrulev1 "open-cluster-management.io/multicloud-operators-subscription/pkg/apis/apps/placementrule/v1"
 	subscriptionv1 "open-cluster-management.io/multicloud-operators-subscription/pkg/apis/apps/v1"
 )
+
+func (s *ApplicationSet) createApplicationSet(w workloads.Workload) error {
+	as := argocdapi.ApplicationSet{}
+
+	return nil
+}
 
 func (s *Subscription) createNamespace() error {
 

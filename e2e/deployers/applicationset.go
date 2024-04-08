@@ -49,10 +49,12 @@ func (s ApplicationSet) Deploy(w workloads.Workload) error {
 		    - default
 		  numberOfClusters: 1
 	*/
-	err := s.createPlacement()
-	if err != nil {
-		return err
-	}
+
+	// err := s.createPlacement()
+	// if err != nil {
+	// 	return err
+	// }
+
 	/*
 		apiVersion: argoproj.io/v1alpha1
 		kind: ApplicationSet
@@ -90,7 +92,7 @@ func (s ApplicationSet) Deploy(w workloads.Workload) error {
 		          - CreateNamespace=true
 		          - PruneLast=true
 	*/
-	err = s.createApplicationSet(w)
+	err := s.createApplicationSet(w)
 	if err != nil {
 		return err
 	}
