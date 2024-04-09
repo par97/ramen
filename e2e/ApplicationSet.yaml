@@ -1,0 +1,26 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: busybox-appset
+  namespace: argocd
+spec:
+  generators:
+    - clusterDecisionResource:
+        configMapRef: busybox-appset-configmap
+        labelSelector:
+          matchLabels:
+            cluster.open-cluster-management.io/placement: busybox-appset-placement
+        requeueAfterSeconds: 180
+  template:
+    metadata:
+      name: busybox-appset-{{name}}
+      labels:
+        velero.io/exclude-from-backup: "true"
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/RamenDR/ocm-ramen-samples.git
+        path: workloads/deployment/k8s-regional-rbd
+      destination:
+        namespace: busybox-appset
+        server: "{{server}}"

@@ -1,11 +1,27 @@
 package deployers
 
-import "github.com/ramendr/ramen/e2e/workloads"
+import (
+	"github.com/ramendr/ramen/e2e/util"
+	"github.com/ramendr/ramen/e2e/workloads"
+)
 
 type ApplicationSet struct {
-	repoURL  string // From the Workload?
-	path     string // From the Workload?
-	revision string // From the Workload?
+	Ctx *util.TestContext
+
+	AppName   string
+	Namespace string
+
+	PlacementName              string
+	McsbName                   string
+	PlacementDecisionConfigMap string
+}
+
+func (a *ApplicationSet) Init() {
+	a.AppName = "busybox"
+	a.Namespace = "busybox-appset"
+	a.PlacementName = a.Namespace + "-placement"
+	a.McsbName = "default"
+	a.PlacementDecisionConfigMap = a.Namespace + "-configmap"
 }
 
 func (a ApplicationSet) Deploy(w workloads.Workload) error {
@@ -14,11 +30,76 @@ func (a ApplicationSet) Deploy(w workloads.Workload) error {
 	// Generate an ApplicationSet for the Workload
 	// - Kustomize the Workload; call Workload.Kustomize(StorageType)
 	// Address namespace/label/suffix as needed for various resources
-	w.Kustomize()
-	return nil
+	// w.Kustomize()
+	a.Ctx.Log.Info("enter ApplicationSet Deploy")
+
+	err := a.addArgoCDClusters()
+
+	err = createNamespace(a.Ctx, a.Namespace)
+	if err != nil {
+		return err
+	}
+
+	err = createManagedClusterSetBinding(a.Ctx, a.McsbName, a.Namespace, a.AppName)
+	if err != nil {
+		return err
+	}
+
+	err = createPlacement(a.Ctx, a.PlacementName, a.Namespace, a.AppName)
+	if err != nil {
+		return err
+	}
+
+	err = createPlacementDecisionConfigMap(a.Ctx, a.PlacementDecisionConfigMap, "argocd")
+	if err != nil {
+		return err
+	}
+
+	return err
 }
 
 func (a ApplicationSet) Undeploy(w workloads.Workload) error {
 	// Delete Placement, Binding, ApplicationSet
+	a.Ctx.Log.Info("enter ApplicationSet Undeploy")
+
+	err := deleteConfigMap(a.Ctx, a.PlacementDecisionConfigMap, a.Namespace)
+	if err != nil {
+		return err
+	}
+
+	err = deletePlacement(a.Ctx, a.PlacementName, a.Namespace)
+	if err != nil {
+		return err
+	}
+
+	err = deleteManagedClusterSetBinding(a.Ctx, a.McsbName, a.Namespace)
+	if err != nil {
+		return err
+	}
+
+	err = deleteNamespace(a.Ctx, a.Namespace)
+	if err != nil {
+		return err
+	}
+
+	// don't use, this function is problematic
+	// err := a.deleteArgoCDClusters()
+
+	return nil
+}
+
+func (a ApplicationSet) GetAppName() string {
+	return a.AppName
+}
+
+func (a ApplicationSet) GetNameSpace() string {
+	return a.Namespace
+}
+
+func (a ApplicationSet) Health(w workloads.Workload) error {
+	a.Ctx.Log.Info("enter ApplicationSet Health")
+	w.GetResources()
+	// Check health using reflection to known types of the workload on the targetCluster
+	// Again if using reflection can be a common function outside of deployer as such
 	return nil
 }

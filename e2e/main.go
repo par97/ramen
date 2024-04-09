@@ -48,15 +48,21 @@ func main() {
 		panic(err)
 	}
 
-	err = RunSuite(&suites.PrecheckSuite{}, ctx)
+	// err = RunSuite(&suites.PrecheckSuite{}, ctx)
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	// err = RunSuite(&suites.BasicSuite{}, ctx)
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	err = RunSuite(&suites.AppSetSuite{}, ctx)
 	if err != nil {
 		panic(err)
 	}
 
-	err = RunSuite(&suites.BasicSuite{}, ctx)
-	if err != nil {
-		panic(err)
-	}
 	ctx.Log.Info("exit main()")
 }
 

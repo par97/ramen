@@ -45,15 +45,15 @@ func (s Subscription) Deploy(w workloads.Workload) error {
 	s.Ctx.Log.Info("enter Subscription Deploy")
 
 	// w.Kustomize()
-	err := s.createNamespace()
+	err := createNamespace(s.Ctx, s.Namespace)
 	if err != nil {
 		return err
 	}
-	err = s.createManagedClusterSetBinding()
+	err = createManagedClusterSetBinding(s.Ctx, "default", s.Namespace, s.AppName)
 	if err != nil {
 		return err
 	}
-	err = s.createPlacement()
+	err = createPlacement(s.Ctx, util.DefaultPlacement, s.Namespace, s.AppName)
 	if err != nil {
 		return err
 	}
@@ -73,15 +73,15 @@ func (s Subscription) Undeploy(w workloads.Workload) error {
 	if err != nil {
 		return err
 	}
-	err = s.deletePlacement()
+	err = deletePlacement(s.Ctx, util.DefaultPlacement, s.Namespace)
 	if err != nil {
 		return err
 	}
-	err = s.deleteManagedClusterSetBinding()
+	err = deleteManagedClusterSetBinding(s.Ctx, "default", s.Namespace)
 	if err != nil {
 		return err
 	}
-	err = s.deleteNamespace()
+	err = deleteNamespace(s.Ctx, s.Namespace)
 	if err != nil {
 		return err
 	}

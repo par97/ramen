@@ -32,7 +32,7 @@ func RunCommand(cmd *exec.Cmd) (string, error) {
 }
 
 func Pause() {
-	fmt.Print("Pause. Press any key to continue: ")
+	fmt.Print("Paused. Press any key to continue. ")
 	input := bufio.NewScanner(os.Stdin)
 	input.Scan()
 	fmt.Println(input.Text())
