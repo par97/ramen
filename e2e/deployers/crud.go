@@ -23,11 +23,10 @@ func (a *ApplicationSet) createApplicationSet(w workloads.Workload) error {
 	a.Ctx.Log.Info("enter createApplicationSet")
 	var requeueSeconds int64 = 180
 
-	// w.
 	appset := &argocdv1alpha1hack.ApplicationSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      a.GetAppName(),
-			Namespace: a.GetNameSpace(),
+			Namespace: a.ArgoCDNamespace,
 		},
 		Spec: argocdv1alpha1hack.ApplicationSetSpec{
 			Generators: []argocdv1alpha1hack.ApplicationSetGenerator{

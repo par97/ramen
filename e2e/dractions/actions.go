@@ -26,14 +26,21 @@ func (r DRActions) EnableProtection(w workloads.Workload, d deployers.Deployer) 
 	// Create DRPC, in desired namespace
 	r.Ctx.Log.Info("enter DRActions EnableProtection")
 
-	_, ok := d.(*deployers.Subscription)
-	if ok {
+	_, isSub := d.(*deployers.Subscription)
+	_, isAppSet := d.(*deployers.ApplicationSet)
+	if isSub || isAppSet {
 
 		name := d.GetAppName()
 		namespace := d.GetNameSpace()
+		if isAppSet {
+			namespace = "argocd" //TODO, improve
+		}
 		drPolicyName := util.DefaultDRPolicy
 		appname := w.GetAppName()
 		placementName := util.DefaultPlacement
+		if isAppSet {
+			placementName = d.GetNameSpace() + "-placement" //TODO, improve
+		}
 		drpcName := name + "-drpc"
 		client := r.Ctx.HubCtrlClient()
 

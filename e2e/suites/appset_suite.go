@@ -45,7 +45,7 @@ func (s *AppSetSuite) Tests() []Test {
 	s.Ctx.Log.Info("enter AppSetSuite Tests")
 	return []Test{
 		s.TestWorkloadDeployment,
-		// s.TestEnableProtection,
+		s.TestEnableProtection,
 		// s.TestWorkloadFailover,
 		// s.TestWorkloadRelocation,
 		// s.TestDisableProtection,
@@ -61,7 +61,6 @@ func (s *AppSetSuite) TestWorkloadDeployment() error {
 		return err
 	}
 	s.Ctx.Log.Info("TestWorkloadDeployment: Pass")
-	util.Pause()
 	return nil
 }
 
