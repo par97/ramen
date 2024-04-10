@@ -18,9 +18,17 @@ spec:
         velero.io/exclude-from-backup: "true"
     spec:
       project: default
-      source:
-        repoURL: https://github.com/RamenDR/ocm-ramen-samples.git
-        path: workloads/deployment/k8s-regional-rbd
+      sources:
+        - repoURL: https://github.com/RamenDR/ocm-ramen-samples.git
+          path: workloads/deployment/k8s-regional-rbd
+          targetRevision: main
       destination:
         namespace: busybox-appset
         server: "{{server}}"
+      syncPolicy:
+        automated:
+          selfHeal: true
+          prune: true
+        syncOptions:
+          - CreateNamespace=true
+          - PruneLast=true

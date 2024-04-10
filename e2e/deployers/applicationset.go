@@ -11,6 +11,7 @@ type ApplicationSet struct {
 	AppName   string
 	Namespace string
 
+	ArgoCDNamespace            string
 	PlacementName              string
 	McsbName                   string
 	PlacementDecisionConfigMap string
@@ -19,6 +20,7 @@ type ApplicationSet struct {
 func (a *ApplicationSet) Init() {
 	a.AppName = "busybox"
 	a.Namespace = "busybox-appset"
+	a.ArgoCDNamespace = "argocd"
 	a.PlacementName = a.Namespace + "-placement"
 	a.McsbName = "default"
 	a.PlacementDecisionConfigMap = a.Namespace + "-configmap"
@@ -40,17 +42,22 @@ func (a ApplicationSet) Deploy(w workloads.Workload) error {
 		return err
 	}
 
-	err = createManagedClusterSetBinding(a.Ctx, a.McsbName, a.Namespace, a.AppName)
+	err = createManagedClusterSetBinding(a.Ctx, a.McsbName, a.ArgoCDNamespace, a.AppName)
 	if err != nil {
 		return err
 	}
 
-	err = createPlacement(a.Ctx, a.PlacementName, a.Namespace, a.AppName)
+	err = createPlacement(a.Ctx, a.PlacementName, a.ArgoCDNamespace, a.AppName)
 	if err != nil {
 		return err
 	}
 
-	err = createPlacementDecisionConfigMap(a.Ctx, a.PlacementDecisionConfigMap, "argocd")
+	err = createPlacementDecisionConfigMap(a.Ctx, a.PlacementDecisionConfigMap, a.ArgoCDNamespace)
+	if err != nil {
+		return err
+	}
+
+	err = a.createApplicationSet()
 	if err != nil {
 		return err
 	}
@@ -62,17 +69,22 @@ func (a ApplicationSet) Undeploy(w workloads.Workload) error {
 	// Delete Placement, Binding, ApplicationSet
 	a.Ctx.Log.Info("enter ApplicationSet Undeploy")
 
-	err := deleteConfigMap(a.Ctx, a.PlacementDecisionConfigMap, a.Namespace)
+	err := a.deleteApplicationSet()
 	if err != nil {
 		return err
 	}
 
-	err = deletePlacement(a.Ctx, a.PlacementName, a.Namespace)
+	err = deleteConfigMap(a.Ctx, a.PlacementDecisionConfigMap, a.ArgoCDNamespace)
 	if err != nil {
 		return err
 	}
 
-	err = deleteManagedClusterSetBinding(a.Ctx, a.McsbName, a.Namespace)
+	err = deletePlacement(a.Ctx, a.PlacementName, a.ArgoCDNamespace)
+	if err != nil {
+		return err
+	}
+
+	err = deleteManagedClusterSetBinding(a.Ctx, a.McsbName, a.ArgoCDNamespace)
 	if err != nil {
 		return err
 	}

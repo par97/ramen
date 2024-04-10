@@ -19,11 +19,28 @@ import (
 )
 
 func (a *ApplicationSet) createApplicationSet() error {
+	a.Ctx.Log.Info("enter createApplicationSet")
 
+	// change this func to use ApplicationSet data structure later
+	cmd := exec.Command("kubectl", "create", "-f", "./ApplicationSet.yaml", "--kubeconfig="+a.Ctx.HubKubeconfig())
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return err
+	}
+	a.Ctx.Log.Info(string(out))
 	return nil
 }
 
 func (a *ApplicationSet) deleteApplicationSet() error {
+	a.Ctx.Log.Info("enter deleteApplicationSet")
+
+	// change this func to use ApplicationSet data structure later
+	cmd := exec.Command("kubectl", "delete", "-f", "./ApplicationSet.yaml", "--kubeconfig="+a.Ctx.HubKubeconfig())
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return err
+	}
+	a.Ctx.Log.Info(string(out))
 	return nil
 }
 
@@ -42,9 +59,12 @@ func createPlacementDecisionConfigMap(ctx *util.TestContext, cmName string, cmNa
 
 	err := ctx.HubCtrlClient().Create(context.Background(), configMap)
 	if err != nil {
-		return err
+		if !errors.IsAlreadyExists(err) {
+			fmt.Printf("err: %v\n", err)
+			return fmt.Errorf("could not create configMap " + cmName)
+		}
+		ctx.Log.Info("configMap " + cmName + " already Exists")
 	}
-
 	return nil
 }
 
@@ -58,7 +78,11 @@ func deleteConfigMap(ctx *util.TestContext, cmName string, cmNamespace string) e
 
 	err := ctx.HubCtrlClient().Delete(context.Background(), configMap)
 	if err != nil {
-		return err
+		if !errors.IsNotFound(err) {
+			fmt.Printf("err: %v\n", err)
+			return fmt.Errorf("could not delete configMap " + cmName)
+		}
+		ctx.Log.Info("configMap " + cmName + " not found")
 	}
 
 	return nil
