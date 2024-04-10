@@ -25,6 +25,7 @@ func (a *ApplicationSet) Init() {
 	a.PlacementName = a.Name + "-placement"
 	a.McsbName = "default"
 	a.ClusterDecisionConfigMapName = a.Name + "-configmap"
+	a.ApplicationDestinationNamespace = a.Name
 
 }
 
