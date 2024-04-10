@@ -3,10 +3,11 @@ package deployers
 import (
 	"context"
 	"fmt"
+	"os/exec"
+
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"os/exec"
 
 	"github.com/ramendr/ramen/e2e/util"
 	"github.com/ramendr/ramen/e2e/workloads"
@@ -14,33 +15,94 @@ import (
 	ocmclusterv1beta2 "open-cluster-management.io/api/cluster/v1beta2"
 	placementrulev1 "open-cluster-management.io/multicloud-operators-subscription/pkg/apis/apps/placementrule/v1"
 	subscriptionv1 "open-cluster-management.io/multicloud-operators-subscription/pkg/apis/apps/v1"
-	// argocdv1alpha1hack "github.com/ramendr/ramen/controllers/argocd"
-	// argocdv1alpha1hack "github.com/argoproj/argo-cd/pkg/apis/application/v1alpha1"
+
+	argocdv1alpha1hack "github.com/ramendr/ramen/e2e/argocd"
 )
 
-func (a *ApplicationSet) createApplicationSet() error {
+func (a *ApplicationSet) createApplicationSet(w workloads.Workload) error {
 	a.Ctx.Log.Info("enter createApplicationSet")
+	var requeueSeconds int64 = 180
 
-	// change this func to use ApplicationSet data structure later
-	cmd := exec.Command("kubectl", "create", "-f", "./ApplicationSet.yaml", "--kubeconfig="+a.Ctx.HubKubeconfig())
-	out, err := cmd.CombinedOutput()
-	if err != nil {
-		return err
+	// w.
+	appset := &argocdv1alpha1hack.ApplicationSet{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      a.GetAppName(),
+			Namespace: a.GetNameSpace(),
+		},
+		Spec: argocdv1alpha1hack.ApplicationSetSpec{
+			Generators: []argocdv1alpha1hack.ApplicationSetGenerator{
+				{
+					ClusterDecisionResource: &argocdv1alpha1hack.DuckTypeGenerator{
+						ConfigMapRef: a.ClusterDecisionConfigMapName,
+						LabelSelector: metav1.LabelSelector{
+							MatchLabels: map[string]string{
+								"cluster.open-cluster-management.io/placement": a.PlacementName,
+							},
+						},
+						RequeueAfterSeconds: &requeueSeconds,
+					},
+				},
+			},
+			Template: argocdv1alpha1hack.ApplicationSetTemplate{
+				ApplicationSetTemplateMeta: argocdv1alpha1hack.ApplicationSetTemplateMeta{
+					Name: "rbd-{{name}}",
+				},
+				Spec: argocdv1alpha1hack.ApplicationSpec{
+					Source: &argocdv1alpha1hack.ApplicationSource{
+						RepoURL:        w.GetRepoURL(),
+						Path:           w.GetPath(),
+						TargetRevision: w.GetRevision(),
+					},
+					Destination: argocdv1alpha1hack.ApplicationDestination{
+						Server:    "{{server}}",
+						Namespace: a.GetNameSpace(),
+					},
+					Project: "default",
+					SyncPolicy: &argocdv1alpha1hack.SyncPolicy{
+						Automated: &argocdv1alpha1hack.SyncPolicyAutomated{
+							Prune:    true,
+							SelfHeal: true,
+						},
+						SyncOptions: []string{
+							"CreateNamespace=true",
+							"PruneLast=true",
+						},
+					},
+				},
+			},
+		},
 	}
-	a.Ctx.Log.Info(string(out))
+
+	err := a.Ctx.HubCtrlClient().Create(context.Background(), appset)
+	if err != nil {
+		if !errors.IsAlreadyExists(err) {
+			fmt.Printf("err: %v\n", err)
+			return err
+		}
+		a.Ctx.Log.Info("applicationset " + appset.Name + " already Exists")
+	}
+
 	return nil
 }
 
 func (a *ApplicationSet) deleteApplicationSet() error {
 	a.Ctx.Log.Info("enter deleteApplicationSet")
 
-	// change this func to use ApplicationSet data structure later
-	cmd := exec.Command("kubectl", "delete", "-f", "./ApplicationSet.yaml", "--kubeconfig="+a.Ctx.HubKubeconfig())
-	out, err := cmd.CombinedOutput()
-	if err != nil {
-		return err
+	appset := &argocdv1alpha1hack.ApplicationSet{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      a.AppName,
+			Namespace: a.ArgoCDNamespace,
+		},
 	}
-	a.Ctx.Log.Info(string(out))
+
+	err := a.Ctx.HubCtrlClient().Delete(context.Background(), appset)
+	if err != nil {
+		if !errors.IsNotFound(err) {
+			fmt.Printf("err: %v\n", err)
+			return err
+		}
+		a.Ctx.Log.Info("applicationset " + appset.Name + " not found")
+	}
 	return nil
 }
 
@@ -89,6 +151,7 @@ func deleteConfigMap(ctx *util.TestContext, cmName string, cmNamespace string) e
 }
 
 func (a *ApplicationSet) addArgoCDClusters() error {
+	//TODO: clusternames better to be dynamically got from config
 	for _, c := range util.ClusterNames {
 		a.Ctx.Log.Info("add cluster " + c + " into ArgoCD")
 		cmd := exec.Command("argocd", "cluster", "add", c, " -y --namespace argocd --kubeconfig "+a.Ctx.HubKubeconfig())
@@ -170,7 +233,7 @@ func (s *Subscription) createSubscription(w workloads.Workload) error {
 			fmt.Printf("err: %v\n", err)
 			return err
 		}
-		s.Ctx.Log.Info("placement " + objSubscription.ObjectMeta.Name + " already Exists")
+		s.Ctx.Log.Info("placement " + objSubscription.Name + " already Exists")
 	}
 
 	return nil
@@ -202,7 +265,7 @@ func createPlacement(ctx *util.TestContext, plName string, plNamespace string, a
 			fmt.Printf("err: %v\n", err)
 			return err
 		}
-		ctx.Log.Info("placement " + objPlacement.ObjectMeta.Name + " already Exists")
+		ctx.Log.Info("placement " + objPlacement.Name + " already Exists")
 	}
 	return nil
 }
@@ -229,7 +292,7 @@ func createManagedClusterSetBinding(ctx *util.TestContext, mcsbName string, mcsb
 			fmt.Printf("err: %v\n", err)
 			return err
 		}
-		ctx.Log.Info("managedClusterSetBinding " + objMCSB.ObjectMeta.Name + " already Exists")
+		ctx.Log.Info("managedClusterSetBinding " + objMCSB.Name + " already Exists")
 	}
 	return nil
 }

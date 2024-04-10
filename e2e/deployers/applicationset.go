@@ -11,10 +11,10 @@ type ApplicationSet struct {
 	AppName   string
 	Namespace string
 
-	ArgoCDNamespace            string
-	PlacementName              string
-	McsbName                   string
-	PlacementDecisionConfigMap string
+	ArgoCDNamespace              string
+	PlacementName                string
+	McsbName                     string
+	ClusterDecisionConfigMapName string
 }
 
 func (a *ApplicationSet) Init() {
@@ -23,7 +23,7 @@ func (a *ApplicationSet) Init() {
 	a.ArgoCDNamespace = "argocd"
 	a.PlacementName = a.Namespace + "-placement"
 	a.McsbName = "default"
-	a.PlacementDecisionConfigMap = a.Namespace + "-configmap"
+	a.ClusterDecisionConfigMapName = a.Namespace + "-configmap"
 }
 
 func (a ApplicationSet) Deploy(w workloads.Workload) error {
@@ -36,6 +36,9 @@ func (a ApplicationSet) Deploy(w workloads.Workload) error {
 	a.Ctx.Log.Info("enter ApplicationSet Deploy")
 
 	err := a.addArgoCDClusters()
+	if err != nil {
+		return err
+	}
 
 	err = createNamespace(a.Ctx, a.Namespace)
 	if err != nil {
@@ -52,12 +55,12 @@ func (a ApplicationSet) Deploy(w workloads.Workload) error {
 		return err
 	}
 
-	err = createPlacementDecisionConfigMap(a.Ctx, a.PlacementDecisionConfigMap, a.ArgoCDNamespace)
+	err = createPlacementDecisionConfigMap(a.Ctx, a.ClusterDecisionConfigMapName, a.ArgoCDNamespace)
 	if err != nil {
 		return err
 	}
 
-	err = a.createApplicationSet()
+	err = a.createApplicationSet(w)
 	if err != nil {
 		return err
 	}
@@ -74,7 +77,7 @@ func (a ApplicationSet) Undeploy(w workloads.Workload) error {
 		return err
 	}
 
-	err = deleteConfigMap(a.Ctx, a.PlacementDecisionConfigMap, a.ArgoCDNamespace)
+	err = deleteConfigMap(a.Ctx, a.ClusterDecisionConfigMapName, a.ArgoCDNamespace)
 	if err != nil {
 		return err
 	}
