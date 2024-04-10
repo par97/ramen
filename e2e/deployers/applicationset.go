@@ -8,22 +8,24 @@ import (
 type ApplicationSet struct {
 	Ctx *util.TestContext
 
-	AppName   string
+	Name      string
 	Namespace string
 
-	ArgoCDNamespace              string
-	PlacementName                string
-	McsbName                     string
-	ClusterDecisionConfigMapName string
+	// ArgoCDNamespace                 string
+	PlacementName                   string
+	McsbName                        string
+	ClusterDecisionConfigMapName    string
+	ApplicationDestinationNamespace string
 }
 
 func (a *ApplicationSet) Init() {
-	a.AppName = "busybox"
-	a.Namespace = "busybox-appset"
-	a.ArgoCDNamespace = "argocd"
-	a.PlacementName = a.Namespace + "-placement"
+	a.Name = "busybox-appset"
+	a.Namespace = "argocd"
+	// a.ArgoCDNamespace = "argocd"
+	a.PlacementName = a.Name + "-placement"
 	a.McsbName = "default"
-	a.ClusterDecisionConfigMapName = a.Namespace + "-configmap"
+	a.ClusterDecisionConfigMapName = a.Name + "-configmap"
+
 }
 
 func (a ApplicationSet) Deploy(w workloads.Workload) error {
@@ -40,22 +42,17 @@ func (a ApplicationSet) Deploy(w workloads.Workload) error {
 		return err
 	}
 
-	err = createNamespace(a.Ctx, a.Namespace)
+	err = createManagedClusterSetBinding(a.Ctx, a.McsbName, a.Namespace, a.Name)
 	if err != nil {
 		return err
 	}
 
-	err = createManagedClusterSetBinding(a.Ctx, a.McsbName, a.ArgoCDNamespace, a.AppName)
+	err = createPlacement(a.Ctx, a.PlacementName, a.Namespace, a.Name)
 	if err != nil {
 		return err
 	}
 
-	err = createPlacement(a.Ctx, a.PlacementName, a.ArgoCDNamespace, a.AppName)
-	if err != nil {
-		return err
-	}
-
-	err = createPlacementDecisionConfigMap(a.Ctx, a.ClusterDecisionConfigMapName, a.ArgoCDNamespace)
+	err = createPlacementDecisionConfigMap(a.Ctx, a.ClusterDecisionConfigMapName, a.Namespace)
 	if err != nil {
 		return err
 	}
@@ -77,22 +74,17 @@ func (a ApplicationSet) Undeploy(w workloads.Workload) error {
 		return err
 	}
 
-	err = deleteConfigMap(a.Ctx, a.ClusterDecisionConfigMapName, a.ArgoCDNamespace)
+	err = deleteConfigMap(a.Ctx, a.ClusterDecisionConfigMapName, a.Namespace)
 	if err != nil {
 		return err
 	}
 
-	err = deletePlacement(a.Ctx, a.PlacementName, a.ArgoCDNamespace)
+	err = deletePlacement(a.Ctx, a.PlacementName, a.Namespace)
 	if err != nil {
 		return err
 	}
 
-	err = deleteManagedClusterSetBinding(a.Ctx, a.McsbName, a.ArgoCDNamespace)
-	if err != nil {
-		return err
-	}
-
-	err = deleteNamespace(a.Ctx, a.Namespace)
+	err = deleteManagedClusterSetBinding(a.Ctx, a.McsbName, a.Namespace)
 	if err != nil {
 		return err
 	}
@@ -103,8 +95,8 @@ func (a ApplicationSet) Undeploy(w workloads.Workload) error {
 	return nil
 }
 
-func (a ApplicationSet) GetAppName() string {
-	return a.AppName
+func (a ApplicationSet) GetName() string {
+	return a.Name
 }
 
 func (a ApplicationSet) GetNameSpace() string {

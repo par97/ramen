@@ -25,8 +25,8 @@ func (a *ApplicationSet) createApplicationSet(w workloads.Workload) error {
 
 	appset := &argocdv1alpha1hack.ApplicationSet{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      a.GetAppName(),
-			Namespace: a.ArgoCDNamespace,
+			Name:      a.Name,
+			Namespace: a.Namespace,
 		},
 		Spec: argocdv1alpha1hack.ApplicationSetSpec{
 			Generators: []argocdv1alpha1hack.ApplicationSetGenerator{
@@ -54,7 +54,7 @@ func (a *ApplicationSet) createApplicationSet(w workloads.Workload) error {
 					},
 					Destination: argocdv1alpha1hack.ApplicationDestination{
 						Server:    "{{server}}",
-						Namespace: a.GetNameSpace(),
+						Namespace: a.ApplicationDestinationNamespace,
 					},
 					Project: "default",
 					SyncPolicy: &argocdv1alpha1hack.SyncPolicy{
@@ -89,8 +89,8 @@ func (a *ApplicationSet) deleteApplicationSet() error {
 
 	appset := &argocdv1alpha1hack.ApplicationSet{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      a.AppName,
-			Namespace: a.ArgoCDNamespace,
+			Name:      a.Name,
+			Namespace: a.Namespace,
 		},
 	}
 
@@ -198,7 +198,7 @@ func createNamespace(ctx *util.TestContext, namespace string) error {
 func (s *Subscription) createSubscription(w workloads.Workload) error {
 
 	labels := make(map[string]string)
-	labels["apps"] = s.AppName
+	labels["apps"] = s.Name
 
 	annotations := make(map[string]string)
 	annotations["apps.open-cluster-management.io/github-branch"] = w.GetRevision()

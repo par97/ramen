@@ -11,6 +11,6 @@ type Deployer interface {
 	// as we can Kustomize the Workload and change the deployer to perform the right action
 	// Resize(Workload) for changing PVC(s) size
 	Health(workloads.Workload) error
-	GetAppName() string
+	GetName() string
 	GetNameSpace() string
 }

@@ -15,7 +15,7 @@ type Subscription struct {
 	ChannelNamespace string
 	SubscriptionName string
 
-	AppName   string // deployment-rbd
+	Name      string // deployment-rbd
 	Namespace string // deployment-rbd
 }
 
@@ -23,12 +23,12 @@ func (s *Subscription) Init() {
 	s.ChannelName = "ramen-gitops"
 	s.ChannelNamespace = "ramen-samples"
 	s.SubscriptionName = "subscription"
-	s.AppName = "deployment-rbd"
+	s.Name = "deployment-rbd"
 	s.Namespace = "deployment-rbd"
 }
 
-func (s Subscription) GetAppName() string {
-	return s.AppName
+func (s Subscription) GetName() string {
+	return s.Name
 }
 
 func (s Subscription) GetNameSpace() string {
@@ -49,11 +49,11 @@ func (s Subscription) Deploy(w workloads.Workload) error {
 	if err != nil {
 		return err
 	}
-	err = createManagedClusterSetBinding(s.Ctx, "default", s.Namespace, s.AppName)
+	err = createManagedClusterSetBinding(s.Ctx, "default", s.Namespace, s.Name)
 	if err != nil {
 		return err
 	}
-	err = createPlacement(s.Ctx, util.DefaultPlacement, s.Namespace, s.AppName)
+	err = createPlacement(s.Ctx, util.DefaultPlacement, s.Namespace, s.Name)
 	if err != nil {
 		return err
 	}

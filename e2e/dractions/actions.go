@@ -30,17 +30,17 @@ func (r DRActions) EnableProtection(w workloads.Workload, d deployers.Deployer) 
 	_, isAppSet := d.(*deployers.ApplicationSet)
 	if isSub || isAppSet {
 
-		name := d.GetAppName()
+		name := d.GetName()
 		namespace := d.GetNameSpace()
-		if isAppSet {
-			namespace = "argocd" //TODO, improve
-		}
 		drPolicyName := util.DefaultDRPolicy
 		appname := w.GetAppName()
+
+		//TODO: improve placement name
 		placementName := util.DefaultPlacement
 		if isAppSet {
-			placementName = d.GetNameSpace() + "-placement" //TODO, improve
+			placementName = d.GetName() + "-placement"
 		}
+
 		drpcName := name + "-drpc"
 		client := r.Ctx.HubCtrlClient()
 
@@ -124,7 +124,7 @@ func (r DRActions) DisableProtection(w workloads.Workload, d deployers.Deployer)
 	_, ok := d.(*deployers.Subscription)
 	if ok {
 
-		name := d.GetAppName()
+		name := d.GetName()
 		namespace := d.GetNameSpace()
 		placementName := util.DefaultPlacement
 		drpcName := name + "-drpc"
@@ -163,7 +163,7 @@ func (r DRActions) Failover(w workloads.Workload, d deployers.Deployer) error {
 	// Update DRPC
 	r.Ctx.Log.Info("enter dractions Failover")
 
-	name := d.GetAppName()
+	name := d.GetName()
 	namespace := d.GetNameSpace()
 	//placementName := w.GetPlacementName()
 	drPolicyName := util.DefaultDRPolicy
@@ -236,7 +236,7 @@ func (r DRActions) Relocate(w workloads.Workload, d deployers.Deployer) error {
 	// Update DRPC
 	r.Ctx.Log.Info("enter dractions Relocate")
 
-	name := d.GetAppName()
+	name := d.GetName()
 	namespace := d.GetNameSpace()
 	//placementName := w.GetPlacementName()
 	drpcName := name + "-drpc"
