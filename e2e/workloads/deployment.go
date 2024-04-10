@@ -5,7 +5,7 @@ import (
 )
 
 type Deployment struct {
-	// RepoURL  string // Possibly all this is part of Workload than each implementation of the interfaces?
+	RepoURL  string // Possibly all this is part of Workload than each implementation of the interfaces?
 	Path     string
 	Revision string
 	AppName  string
@@ -14,7 +14,7 @@ type Deployment struct {
 }
 
 func (w *Deployment) Init() {
-	// w.RepoURL = "https://github.com/ramendr/ocm-ramen-samples.git"
+	w.RepoURL = "https://github.com/ramendr/ocm-ramen-samples.git"
 	w.Path = "workloads/deployment/k8s-regional-rbd"
 	w.Revision = "main"
 	w.AppName = "busybox"
@@ -24,9 +24,9 @@ func (w Deployment) GetAppName() string {
 	return w.AppName
 }
 
-// func (w Deployment) GetRepoURL() string {
-// 	return w.RepoURL
-// }
+func (w Deployment) GetRepoURL() string {
+	return w.RepoURL
+}
 
 func (w Deployment) GetPath() string {
 	return w.Path
