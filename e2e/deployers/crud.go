@@ -77,7 +77,7 @@ func (a *ApplicationSet) createApplicationSet(w workloads.Workload) error {
 	err := a.Ctx.HubCtrlClient().Create(context.Background(), appset)
 	if err != nil {
 		if !errors.IsAlreadyExists(err) {
-			fmt.Printf("err: %v\n", err)
+			a.Ctx.Log.Error(err, "")
 			return err
 		}
 		a.Ctx.Log.Info("applicationset " + appset.Name + " already Exists")
@@ -100,7 +100,7 @@ func (a *ApplicationSet) deleteApplicationSet() error {
 	err := a.Ctx.HubCtrlClient().Delete(context.Background(), appset)
 	if err != nil {
 		if !errors.IsNotFound(err) {
-			fmt.Printf("err: %v\n", err)
+			a.Ctx.Log.Error(err, "")
 			return err
 		}
 		a.Ctx.Log.Info("applicationset " + appset.Name + " not found")
@@ -124,7 +124,7 @@ func createPlacementDecisionConfigMap(ctx *util.TestContext, cmName string, cmNa
 	err := ctx.HubCtrlClient().Create(context.Background(), configMap)
 	if err != nil {
 		if !errors.IsAlreadyExists(err) {
-			fmt.Printf("err: %v\n", err)
+			ctx.Log.Error(err, "")
 			return fmt.Errorf("could not create configMap " + cmName)
 		}
 		ctx.Log.Info("configMap " + cmName + " already Exists")
@@ -143,7 +143,7 @@ func deleteConfigMap(ctx *util.TestContext, cmName string, cmNamespace string) e
 	err := ctx.HubCtrlClient().Delete(context.Background(), configMap)
 	if err != nil {
 		if !errors.IsNotFound(err) {
-			fmt.Printf("err: %v\n", err)
+			ctx.Log.Error(err, "")
 			return fmt.Errorf("could not delete configMap " + cmName)
 		}
 		ctx.Log.Info("configMap " + cmName + " not found")
@@ -190,7 +190,7 @@ func createNamespace(ctx *util.TestContext, namespace string) error {
 	err := ctx.HubCtrlClient().Create(context.Background(), objNs)
 	if err != nil {
 		if !errors.IsAlreadyExists(err) {
-			fmt.Printf("err: %v\n", err)
+			ctx.Log.Error(err, "")
 			return err
 		}
 		ctx.Log.Info("namespace " + namespace + " already Exists")
@@ -232,7 +232,7 @@ func (s *Subscription) createSubscription(w workloads.Workload) error {
 	err := s.Ctx.HubCtrlClient().Create(context.Background(), objSubscription)
 	if err != nil {
 		if !errors.IsAlreadyExists(err) {
-			fmt.Printf("err: %v\n", err)
+			s.Ctx.Log.Error(err, "")
 			return err
 		}
 		s.Ctx.Log.Info("placement " + objSubscription.Name + " already Exists")
@@ -264,7 +264,7 @@ func createPlacement(ctx *util.TestContext, plName string, plNamespace string, a
 	err := ctx.HubCtrlClient().Create(context.Background(), objPlacement)
 	if err != nil {
 		if !errors.IsAlreadyExists(err) {
-			fmt.Printf("err: %v\n", err)
+			ctx.Log.Error(err, "")
 			return err
 		}
 		ctx.Log.Info("placement " + objPlacement.Name + " already Exists")
@@ -291,7 +291,7 @@ func createManagedClusterSetBinding(ctx *util.TestContext, mcsbName string, mcsb
 	err := ctx.HubCtrlClient().Create(context.Background(), objMCSB)
 	if err != nil {
 		if !errors.IsAlreadyExists(err) {
-			fmt.Printf("err: %v\n", err)
+			ctx.Log.Error(err, "")
 			return err
 		}
 		ctx.Log.Info("managedClusterSetBinding " + objMCSB.Name + " already Exists")
@@ -309,7 +309,7 @@ func deleteNamespace(ctx *util.TestContext, namespace string) error {
 	err := ctx.HubCtrlClient().Delete(context.Background(), objNs)
 	if err != nil {
 		if !errors.IsNotFound(err) {
-			fmt.Printf("err: %v\n", err)
+			ctx.Log.Error(err, "")
 			return err
 		}
 		ctx.Log.Info("namespace " + namespace + " not found")
@@ -330,7 +330,7 @@ func (s *Subscription) deleteSubscription() error {
 	err := s.Ctx.HubCtrlClient().Delete(context.Background(), objSubscription)
 	if err != nil {
 		if !errors.IsNotFound(err) {
-			fmt.Printf("err: %v\n", err)
+			s.Ctx.Log.Error(err, "")
 			return err
 		}
 		s.Ctx.Log.Info("subscription " + s.SubscriptionName + " not found")
@@ -351,7 +351,7 @@ func deletePlacement(ctx *util.TestContext, plName string, plNamespace string) e
 	err := ctx.HubCtrlClient().Delete(context.Background(), objPlacement)
 	if err != nil {
 		if !errors.IsNotFound(err) {
-			fmt.Printf("err: %v\n", err)
+			ctx.Log.Error(err, "")
 			return err
 		}
 		ctx.Log.Info("placement " + plName + " not found")
@@ -371,7 +371,7 @@ func deleteManagedClusterSetBinding(ctx *util.TestContext, mcsbName string, mcsb
 	err := ctx.HubCtrlClient().Delete(context.Background(), objMCSB)
 	if err != nil {
 		if !errors.IsNotFound(err) {
-			fmt.Printf("err: %v\n", err)
+			ctx.Log.Error(err, "")
 			return err
 		}
 		ctx.Log.Info("managedClusterSetBinding default not found")
@@ -397,7 +397,7 @@ func (s *Subscription) createChannel() error {
 
 	err := s.Ctx.HubCtrlClient().Create(context.Background(), objChannel)
 	if err != nil {
-		fmt.Printf("err: %v\n", err)
+		s.Ctx.Log.Error(err, "")
 		return err
 	}
 
@@ -418,7 +418,7 @@ func (s *Subscription) deleteChannel() error {
 	err := s.Ctx.HubCtrlClient().Get(context.Background(), key, objChannel)
 	if err != nil {
 		if !errors.IsNotFound(err) {
-			fmt.Printf("err: %v\n", err)
+			s.Ctx.Log.Error(err, "")
 			return err
 		}
 		s.Ctx.Log.Info("channel " + w.ChannelName + " not found")
@@ -427,7 +427,7 @@ func (s *Subscription) deleteChannel() error {
 
 	err = s.Ctx.HubCtrlClient().Delete(context.Background(), objChannel)
 	if err != nil {
-		fmt.Printf("err: %v\n", err)
+		s.Ctx.Log.Error(err, "")
 		return err
 	}
 

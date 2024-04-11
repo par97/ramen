@@ -18,7 +18,6 @@ func (r DRActions) waitPlacementDecision(client client.Client, namespace string,
 	for {
 		placement, err := getPlacement(client, namespace, placementName)
 		if err != nil {
-			fmt.Printf("err: %v\n", err)
 			return nil, "", err
 		}
 		for _, cond := range placement.Status.Conditions {
@@ -31,7 +30,6 @@ func (r DRActions) waitPlacementDecision(client client.Client, namespace string,
 			}
 		}
 		if time.Since(startTime) > time.Second*time.Duration(timeout) {
-			fmt.Println("could not get placement decision before timeout")
 			return nil, "", fmt.Errorf("could not get placement decision before timeout")
 		}
 		r.Ctx.Log.Info(fmt.Sprintf("could not get placement decision, retry in %v seconds", interval))
@@ -48,7 +46,6 @@ func (r DRActions) waitDRPCReady(client client.Client, namespace string, drpcNam
 		ready := true
 		drpc, err := getDRPC(client, namespace, drpcName)
 		if err != nil {
-			fmt.Printf("err: %v\n", err)
 			return err
 		}
 
@@ -75,7 +72,6 @@ func (r DRActions) waitDRPCReady(client client.Client, namespace string, drpcNam
 			return nil
 		}
 		if time.Since(startTime) > time.Second*time.Duration(timeout) {
-			fmt.Printf("drpc status is not ready yet before timeout of %v\n", timeout)
 			return fmt.Errorf(fmt.Sprintf("drpc status is not ready yet before timeout of %v", timeout))
 		}
 		r.Ctx.Log.Info(fmt.Sprintf("drpc status is not ready yet, retry in %v seconds", interval))
@@ -91,7 +87,6 @@ func (r DRActions) waitDRPCPhase(client client.Client, namespace string, drpcNam
 	for {
 		drpc, err := getDRPC(client, namespace, drpcName)
 		if err != nil {
-			fmt.Printf("err: %v\n", err)
 			return err
 		}
 		currentPhase := string(drpc.Status.Phase)
@@ -100,7 +95,6 @@ func (r DRActions) waitDRPCPhase(client client.Client, namespace string, drpcNam
 			return nil
 		}
 		if time.Since(startTime) > time.Second*time.Duration(timeout) {
-			fmt.Printf("drpc phase is not %s yet before timeout of %v\n", phase, timeout)
 			return fmt.Errorf(fmt.Sprintf("drpc status is not %s yet before timeout of %v", phase, timeout))
 		}
 		r.Ctx.Log.Info(fmt.Sprintf("current drpc phase is %s, expecting %s, retry in %v seconds", currentPhase, phase, interval))

@@ -1,8 +1,6 @@
 package suites
 
 import (
-	"fmt"
-
 	"github.com/ramendr/ramen/e2e/deployers"
 	"github.com/ramendr/ramen/e2e/dractions"
 	"github.com/ramendr/ramen/e2e/util"
@@ -66,7 +64,6 @@ func (s *AppSetSuite) TestWorkloadDeployment() error {
 
 	err := s.d.Deploy(s.w)
 	if err != nil {
-		fmt.Printf("err: %v\n", err)
 		return err
 	}
 	s.Ctx.Log.Info("TestWorkloadDeployment: Pass")
@@ -80,7 +77,6 @@ func (s *AppSetSuite) TestEnableProtection() error {
 
 	err := s.r.EnableProtection(s.w, s.d)
 	if err != nil {
-		fmt.Printf("err: %v\n", err)
 		return err
 	}
 	s.Ctx.Log.Info("TestEnableProtection: Pass")
@@ -93,7 +89,6 @@ func (s *AppSetSuite) TestWorkloadFailover() error {
 
 	err := s.r.Failover(s.w, s.d)
 	if err != nil {
-		fmt.Printf("err: %v\n", err)
 		return err
 	}
 	s.Ctx.Log.Info("TestWorkloadFailover: Pass")
@@ -106,7 +101,6 @@ func (s *AppSetSuite) TestWorkloadRelocation() error {
 
 	err := s.r.Relocate(s.w, s.d)
 	if err != nil {
-		fmt.Printf("err: %v\n", err)
 		return err
 	}
 	s.Ctx.Log.Info("TestWorkloadRelocation: Pass")
@@ -119,7 +113,6 @@ func (s *AppSetSuite) TestDisableProtection() error {
 
 	err := s.r.DisableProtection(s.w, s.d)
 	if err != nil {
-		fmt.Printf("err: %v\n", err)
 		return err
 	}
 	s.Ctx.Log.Info("TestDisableProtection: Pass")
@@ -132,7 +125,6 @@ func (s *AppSetSuite) TestWorkloadUndeployment() error {
 
 	err := s.d.Undeploy(s.w)
 	if err != nil {
-		fmt.Printf("err: %v\n", err)
 		return err
 	}
 	s.Ctx.Log.Info("TestWorkloadUndeployment: Pass")
