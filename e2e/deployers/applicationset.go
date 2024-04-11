@@ -36,7 +36,8 @@ func (a ApplicationSet) Deploy(w workloads.Workload) error {
 	// - Kustomize the Workload; call Workload.Kustomize(StorageType)
 	// Address namespace/label/suffix as needed for various resources
 	// w.Kustomize()
-	a.Ctx.Log.Info("enter ApplicationSet Deploy")
+	util.LogEnter(&a.Ctx.Log)
+	defer util.LogExit(&a.Ctx.Log)
 
 	err := a.addArgoCDClusters()
 	if err != nil {
@@ -68,7 +69,8 @@ func (a ApplicationSet) Deploy(w workloads.Workload) error {
 
 func (a ApplicationSet) Undeploy(w workloads.Workload) error {
 	// Delete Placement, Binding, ApplicationSet
-	a.Ctx.Log.Info("enter ApplicationSet Undeploy")
+	util.LogEnter(&a.Ctx.Log)
+	defer util.LogExit(&a.Ctx.Log)
 
 	err := a.deleteApplicationSet()
 	if err != nil {
@@ -105,7 +107,9 @@ func (a ApplicationSet) GetNameSpace() string {
 }
 
 func (a ApplicationSet) Health(w workloads.Workload) error {
-	a.Ctx.Log.Info("enter ApplicationSet Health")
+	util.LogEnter(&a.Ctx.Log)
+	defer util.LogExit(&a.Ctx.Log)
+
 	w.GetResources()
 	// Check health using reflection to known types of the workload on the targetCluster
 	// Again if using reflection can be a common function outside of deployer as such

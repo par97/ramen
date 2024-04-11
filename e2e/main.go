@@ -30,7 +30,8 @@ func main() {
 	ctx := new(util.TestContext)
 	ctx.Log = log
 
-	ctx.Log.Info("enter main()")
+	util.LogEnter(&ctx.Log)
+	defer util.LogExit(&ctx.Log)
 
 	config, err := readConfig()
 	if err != nil {
@@ -63,7 +64,6 @@ func main() {
 		panic(err)
 	}
 
-	ctx.Log.Info("exit main()")
 }
 
 func RunSuite(suite suites.TestSuite, ctx *util.TestContext) error {

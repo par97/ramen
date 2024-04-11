@@ -6,6 +6,10 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"runtime"
+	"strings"
+
+	"github.com/go-logr/logr"
 )
 
 func RunCommand(cmd *exec.Cmd) (string, error) {
@@ -36,4 +40,24 @@ func Pause() {
 	input := bufio.NewScanner(os.Stdin)
 	input.Scan()
 	fmt.Println(input.Text())
+}
+
+func CurrentFuncName() string {
+	counter, _, _, success := runtime.Caller(2)
+	if !success {
+		println("functionName: runtime.Caller: failed")
+		os.Exit(1)
+	}
+
+	fullPathName := runtime.FuncForPC(counter).Name()
+	split := strings.Split(fullPathName, "/")
+	return split[len(split)-1]
+}
+
+func LogEnter(log *logr.Logger) {
+	log.Info("🚀 " + CurrentFuncName())
+}
+
+func LogExit(log *logr.Logger) {
+	log.Info("👍 " + CurrentFuncName())
 }

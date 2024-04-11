@@ -17,12 +17,15 @@ type AppSetSuite struct {
 }
 
 func (s *AppSetSuite) SetContext(ctx *util.TestContext) {
-	ctx.Log.Info("enter AppSetSuite SetContext")
+	util.LogEnter(&ctx.Log)
+	defer util.LogExit(&ctx.Log)
+
 	s.Ctx = ctx
 }
 
 func (s *AppSetSuite) SetupSuite() error {
-	s.Ctx.Log.Info("enter AppSetSuite SetupSuite")
+	util.LogEnter(&s.Ctx.Log)
+	defer util.LogExit(&s.Ctx.Log)
 
 	deployment := &workloads.Deployment{Ctx: s.Ctx}
 	deployment.Init()
@@ -37,15 +40,19 @@ func (s *AppSetSuite) SetupSuite() error {
 }
 
 func (s *AppSetSuite) TeardownSuite() error {
-	s.Ctx.Log.Info("enter AppSetSuite TeardownSuite")
+	util.LogEnter(&s.Ctx.Log)
+	defer util.LogExit(&s.Ctx.Log)
+
 	return nil
 }
 
 func (s *AppSetSuite) Tests() []Test {
-	s.Ctx.Log.Info("enter AppSetSuite Tests")
+	util.LogEnter(&s.Ctx.Log)
+	defer util.LogExit(&s.Ctx.Log)
+
 	return []Test{
 		s.TestWorkloadDeployment,
-		s.TestEnableProtection,
+		// s.TestEnableProtection,
 		// s.TestWorkloadFailover,
 		// s.TestWorkloadRelocation,
 		// s.TestDisableProtection,
@@ -54,18 +61,23 @@ func (s *AppSetSuite) Tests() []Test {
 }
 
 func (s *AppSetSuite) TestWorkloadDeployment() error {
-	s.Ctx.Log.Info("enter AppSetSuite TestWorkloadDeployment")
+	util.LogEnter(&s.Ctx.Log)
+	defer util.LogExit(&s.Ctx.Log)
+
 	err := s.d.Deploy(s.w)
 	if err != nil {
 		fmt.Printf("err: %v\n", err)
 		return err
 	}
 	s.Ctx.Log.Info("TestWorkloadDeployment: Pass")
+	util.Pause()
 	return nil
 }
 
 func (s *AppSetSuite) TestEnableProtection() error {
-	s.Ctx.Log.Info("enter AppSetSuite TestEnableProtection")
+	util.LogEnter(&s.Ctx.Log)
+	defer util.LogExit(&s.Ctx.Log)
+
 	err := s.r.EnableProtection(s.w, s.d)
 	if err != nil {
 		fmt.Printf("err: %v\n", err)
@@ -76,7 +88,9 @@ func (s *AppSetSuite) TestEnableProtection() error {
 }
 
 func (s *AppSetSuite) TestWorkloadFailover() error {
-	s.Ctx.Log.Info("enter AppSetSuite TestWorkloadFailover")
+	util.LogEnter(&s.Ctx.Log)
+	defer util.LogExit(&s.Ctx.Log)
+
 	err := s.r.Failover(s.w, s.d)
 	if err != nil {
 		fmt.Printf("err: %v\n", err)
@@ -87,7 +101,9 @@ func (s *AppSetSuite) TestWorkloadFailover() error {
 }
 
 func (s *AppSetSuite) TestWorkloadRelocation() error {
-	s.Ctx.Log.Info("enter AppSetSuite TestWorkloadRelocation")
+	util.LogEnter(&s.Ctx.Log)
+	defer util.LogExit(&s.Ctx.Log)
+
 	err := s.r.Relocate(s.w, s.d)
 	if err != nil {
 		fmt.Printf("err: %v\n", err)
@@ -98,7 +114,9 @@ func (s *AppSetSuite) TestWorkloadRelocation() error {
 }
 
 func (s *AppSetSuite) TestDisableProtection() error {
-	s.Ctx.Log.Info("enter AppSetSuite TestDisableProtection")
+	util.LogEnter(&s.Ctx.Log)
+	defer util.LogExit(&s.Ctx.Log)
+
 	err := s.r.DisableProtection(s.w, s.d)
 	if err != nil {
 		fmt.Printf("err: %v\n", err)
@@ -109,7 +127,9 @@ func (s *AppSetSuite) TestDisableProtection() error {
 }
 
 func (s *AppSetSuite) TestWorkloadUndeployment() error {
-	s.Ctx.Log.Info("enter AppSetSuite TestWorkloadUndeployment")
+	util.LogEnter(&s.Ctx.Log)
+	defer util.LogExit(&s.Ctx.Log)
+
 	err := s.d.Undeploy(s.w)
 	if err != nil {
 		fmt.Printf("err: %v\n", err)

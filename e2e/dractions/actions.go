@@ -24,7 +24,8 @@ func (r DRActions) EnableProtection(w workloads.Workload, d deployers.Deployer) 
 	// Determine PVC label selector
 	// Determine KubeObjectProtection requirements if Imperative (?)
 	// Create DRPC, in desired namespace
-	r.Ctx.Log.Info("enter DRActions EnableProtection")
+	util.LogEnter(&r.Ctx.Log)
+	defer util.LogExit(&r.Ctx.Log)
 
 	_, isSub := d.(*deployers.Subscription)
 	_, isAppSet := d.(*deployers.ApplicationSet)
@@ -119,7 +120,8 @@ func (r DRActions) EnableProtection(w workloads.Workload, d deployers.Deployer) 
 func (r DRActions) DisableProtection(w workloads.Workload, d deployers.Deployer) error {
 	// remove DRPC
 	// update placement annotation
-	r.Ctx.Log.Info("enter DRActions DisableProtection")
+	util.LogEnter(&r.Ctx.Log)
+	defer util.LogExit(&r.Ctx.Log)
 
 	_, ok := d.(*deployers.Subscription)
 	if ok {
@@ -161,7 +163,8 @@ func (r DRActions) Failover(w workloads.Workload, d deployers.Deployer) error {
 	// Check Placement
 	// Failover to alternate in DRPolicy as the failoverCluster
 	// Update DRPC
-	r.Ctx.Log.Info("enter dractions Failover")
+	util.LogEnter(&r.Ctx.Log)
+	defer util.LogExit(&r.Ctx.Log)
 
 	name := d.GetName()
 	namespace := d.GetNameSpace()
@@ -234,7 +237,8 @@ func (r DRActions) Relocate(w workloads.Workload, d deployers.Deployer) error {
 	// Check Placement
 	// Relocate to Primary in DRPolicy as the PrimaryCluster
 	// Update DRPC
-	r.Ctx.Log.Info("enter dractions Relocate")
+	util.LogEnter(&r.Ctx.Log)
+	defer util.LogExit(&r.Ctx.Log)
 
 	name := d.GetName()
 	namespace := d.GetNameSpace()

@@ -42,19 +42,24 @@ func (w Deployment) GetRevision() string {
 // }
 
 func (w Deployment) Kustomize() error {
-	w.Ctx.Log.Info("enter Deployment Kustomize")
+	util.LogEnter(&w.Ctx.Log)
+	defer util.LogExit(&w.Ctx.Log)
 
 	return nil
 }
 
 func (w Deployment) GetResources() error {
 	// this would be a common function given the vars? But we need the resources Kustomized
-	w.Ctx.Log.Info("enter Deployment GetResources")
+	util.LogEnter(&w.Ctx.Log)
+	defer util.LogExit(&w.Ctx.Log)
+
 	return nil
 }
 
 func (w Deployment) Health() error {
 	// Check the workload health on a targetCluster
-	w.Ctx.Log.Info("enter Deployment Health")
+	util.LogEnter(&w.Ctx.Log)
+	defer util.LogExit(&w.Ctx.Log)
+
 	return nil
 }

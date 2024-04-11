@@ -17,12 +17,15 @@ type BasicSuite struct {
 }
 
 func (s *BasicSuite) SetContext(ctx *util.TestContext) {
-	ctx.Log.Info("enter BasicSuite SetContext")
+	util.LogEnter(&ctx.Log)
+	defer util.LogExit(&ctx.Log)
+
 	s.Ctx = ctx
 }
 
 func (s *BasicSuite) SetupSuite() error {
-	s.Ctx.Log.Info("enter BasicSuite SetupSuite")
+	util.LogEnter(&s.Ctx.Log)
+	defer util.LogExit(&s.Ctx.Log)
 
 	deployment := &workloads.Deployment{Ctx: s.Ctx}
 	deployment.Init()
@@ -37,12 +40,14 @@ func (s *BasicSuite) SetupSuite() error {
 }
 
 func (s *BasicSuite) TeardownSuite() error {
-	s.Ctx.Log.Info("enter BasicSuite TeardownSuite")
+	util.LogEnter(&s.Ctx.Log)
+	defer util.LogExit(&s.Ctx.Log)
 	return nil
 }
 
 func (s *BasicSuite) Tests() []Test {
-	s.Ctx.Log.Info("enter BasicSuite Tests")
+	util.LogEnter(&s.Ctx.Log)
+	defer util.LogExit(&s.Ctx.Log)
 	return []Test{
 		s.TestWorkloadDeployment,
 		s.TestEnableProtection,
@@ -54,7 +59,9 @@ func (s *BasicSuite) Tests() []Test {
 }
 
 func (s *BasicSuite) TestWorkloadDeployment() error {
-	s.Ctx.Log.Info("enter BasicSuite TestWorkloadDeployment")
+	util.LogEnter(&s.Ctx.Log)
+	defer util.LogExit(&s.Ctx.Log)
+
 	err := s.d.Deploy(s.w)
 	if err != nil {
 		fmt.Printf("err: %v\n", err)
@@ -65,7 +72,9 @@ func (s *BasicSuite) TestWorkloadDeployment() error {
 }
 
 func (s *BasicSuite) TestEnableProtection() error {
-	s.Ctx.Log.Info("enter BasicSuite TestEnableProtection")
+	util.LogEnter(&s.Ctx.Log)
+	defer util.LogExit(&s.Ctx.Log)
+
 	err := s.r.EnableProtection(s.w, s.d)
 	if err != nil {
 		fmt.Printf("err: %v\n", err)
@@ -76,7 +85,9 @@ func (s *BasicSuite) TestEnableProtection() error {
 }
 
 func (s *BasicSuite) TestWorkloadFailover() error {
-	s.Ctx.Log.Info("enter BasicSuite TestWorkloadFailover")
+	util.LogEnter(&s.Ctx.Log)
+	defer util.LogExit(&s.Ctx.Log)
+
 	err := s.r.Failover(s.w, s.d)
 	if err != nil {
 		fmt.Printf("err: %v\n", err)
@@ -87,7 +98,9 @@ func (s *BasicSuite) TestWorkloadFailover() error {
 }
 
 func (s *BasicSuite) TestWorkloadRelocation() error {
-	s.Ctx.Log.Info("enter BasicSuite TestWorkloadRelocation")
+	util.LogEnter(&s.Ctx.Log)
+	defer util.LogExit(&s.Ctx.Log)
+
 	err := s.r.Relocate(s.w, s.d)
 	if err != nil {
 		fmt.Printf("err: %v\n", err)
@@ -98,7 +111,9 @@ func (s *BasicSuite) TestWorkloadRelocation() error {
 }
 
 func (s *BasicSuite) TestDisableProtection() error {
-	s.Ctx.Log.Info("enter BasicSuite TestDisableProtection")
+	util.LogEnter(&s.Ctx.Log)
+	defer util.LogExit(&s.Ctx.Log)
+
 	err := s.r.DisableProtection(s.w, s.d)
 	if err != nil {
 		fmt.Printf("err: %v\n", err)
@@ -109,7 +124,9 @@ func (s *BasicSuite) TestDisableProtection() error {
 }
 
 func (s *BasicSuite) TestWorkloadUndeployment() error {
-	s.Ctx.Log.Info("enter BasicSuite TestWorkloadUndeployment")
+	util.LogEnter(&s.Ctx.Log)
+	defer util.LogExit(&s.Ctx.Log)
+
 	err := s.d.Undeploy(s.w)
 	if err != nil {
 		fmt.Printf("err: %v\n", err)

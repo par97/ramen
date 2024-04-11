@@ -20,7 +20,9 @@ import (
 )
 
 func (a *ApplicationSet) createApplicationSet(w workloads.Workload) error {
-	a.Ctx.Log.Info("enter createApplicationSet")
+	util.LogEnter(&a.Ctx.Log)
+	defer util.LogExit(&a.Ctx.Log)
+
 	var requeueSeconds int64 = 180
 
 	appset := &argocdv1alpha1hack.ApplicationSet{
@@ -85,7 +87,8 @@ func (a *ApplicationSet) createApplicationSet(w workloads.Workload) error {
 }
 
 func (a *ApplicationSet) deleteApplicationSet() error {
-	a.Ctx.Log.Info("enter deleteApplicationSet")
+	util.LogEnter(&a.Ctx.Log)
+	defer util.LogExit(&a.Ctx.Log)
 
 	appset := &argocdv1alpha1hack.ApplicationSet{
 		ObjectMeta: metav1.ObjectMeta{
@@ -377,8 +380,9 @@ func deleteManagedClusterSetBinding(ctx *util.TestContext, mcsbName string, mcsb
 }
 
 /*
-func (w *Deployment) createChannel() error {
-	s.Ctx.Log.Info("enter Deployment createChannel")
+func (s *Subscription) createChannel() error {
+	util.LogEnter(&s.Ctx.Log)
+	defer util.LogExit(&s.Ctx.Log)
 
 	objChannel := &channelv1.Channel{
 		ObjectMeta: metav1.ObjectMeta{
@@ -401,7 +405,8 @@ func (w *Deployment) createChannel() error {
 }
 
 func (s *Subscription) deleteChannel() error {
-	s.Ctx.Log.Info("enter Deployment deleteChannel")
+	util.LogEnter(&s.Ctx.Log)
+	defer util.LogExit(&s.Ctx.Log)
 
 	objChannel := &channelv1.Channel{}
 

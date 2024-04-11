@@ -15,26 +15,34 @@ import (
 const ramenSystemNamespace = "ramen-system"
 
 type PrecheckSuite struct {
-	ctx *util.TestContext
+	Ctx *util.TestContext
 }
 
 func (s *PrecheckSuite) SetContext(ctx *util.TestContext) {
-	ctx.Log.Info("enter PrecheckSuite SetContext")
-	s.ctx = ctx
+	util.LogEnter(&ctx.Log)
+	defer util.LogExit(&ctx.Log)
+
+	s.Ctx = ctx
 }
 
 func (s *PrecheckSuite) SetupSuite() error {
-	s.ctx.Log.Info("enter PrecheckSuite SetupSuite")
+	util.LogEnter(&s.Ctx.Log)
+	defer util.LogExit(&s.Ctx.Log)
+
 	return nil
 }
 
 func (s *PrecheckSuite) TeardownSuite() error {
-	s.ctx.Log.Info("enter PrecheckSuite TeardownSuite")
+	util.LogEnter(&s.Ctx.Log)
+	defer util.LogExit(&s.Ctx.Log)
+
 	return nil
 }
 
 func (s *PrecheckSuite) Tests() []Test {
-	s.ctx.Log.Info("enter PrecheckSuite Tests")
+	util.LogEnter(&s.Ctx.Log)
+	defer util.LogExit(&s.Ctx.Log)
+
 	return []Test{
 		s.TestRamenHubOperatorStatus,
 		s.TestRamenSpokeOperatorStatus,
@@ -44,49 +52,51 @@ func (s *PrecheckSuite) Tests() []Test {
 }
 
 func (s *PrecheckSuite) TestRamenHubOperatorStatus() error {
-	s.ctx.Log.Info("enter PrecheckSuite TestRamenHubOperatorStatus")
+	util.LogEnter(&s.Ctx.Log)
+	defer util.LogExit(&s.Ctx.Log)
 
-	isRunning, podName, err := CheckRamenHubPodRunningStatus(s.ctx.HubK8sClientSet())
+	isRunning, podName, err := CheckRamenHubPodRunningStatus(s.Ctx.HubK8sClientSet())
 	if err != nil {
 		return err
 	}
 
 	if isRunning {
-		s.ctx.Log.Info("Ramen Hub Operator is running", "pod", podName)
+		s.Ctx.Log.Info("Ramen Hub Operator is running", "pod", podName)
 	} else {
 		return fmt.Errorf("no running Ramen Hub Operator pod")
 	}
 
-	s.ctx.Log.Info("TestRamenHubOperatorStatus: Pass")
+	s.Ctx.Log.Info("TestRamenHubOperatorStatus: Pass")
 	return nil
 }
 
 func (s *PrecheckSuite) TestRamenSpokeOperatorStatus() error {
-	s.ctx.Log.Info("enter PrecheckSuite TestRamenSpokeOperatorStatus")
+	util.LogEnter(&s.Ctx.Log)
+	defer util.LogExit(&s.Ctx.Log)
 
-	isRunning, podName, err := CheckRamenSpokePodRunningStatus(s.ctx.C1K8sClientSet())
+	isRunning, podName, err := CheckRamenSpokePodRunningStatus(s.Ctx.C1K8sClientSet())
 	if err != nil {
 		return err
 	}
 
 	if isRunning {
-		s.ctx.Log.Info("Ramen Spoke Operator is running on cluster 1", "pod", podName)
+		s.Ctx.Log.Info("Ramen Spoke Operator is running on cluster 1", "pod", podName)
 	} else {
 		return fmt.Errorf("no running Ramen Spoke Operator pod on cluster 1")
 	}
 
-	isRunning, podName, err = CheckRamenSpokePodRunningStatus(s.ctx.C2K8sClientSet())
+	isRunning, podName, err = CheckRamenSpokePodRunningStatus(s.Ctx.C2K8sClientSet())
 	if err != nil {
 		return err
 	}
 
 	if isRunning {
-		s.ctx.Log.Info("Ramen Spoke Operator is running on cluster 2", "pod", podName)
+		s.Ctx.Log.Info("Ramen Spoke Operator is running on cluster 2", "pod", podName)
 	} else {
 		return fmt.Errorf("no running Ramen Spoke Operator pod on cluster 2")
 	}
 
-	s.ctx.Log.Info("TestRamenSpokeOperatorStatus: Pass")
+	s.Ctx.Log.Info("TestRamenSpokeOperatorStatus: Pass")
 	return nil
 
 }
@@ -169,20 +179,21 @@ func CheckRamenSpokePodRunningStatus(k8sClient *kubernetes.Clientset) (bool, str
 }
 
 func (s *PrecheckSuite) TestCephClusterStatus() error {
-	s.ctx.Log.Info("enter PrecheckSuite TestCephClusterStatus")
+	util.LogEnter(&s.Ctx.Log)
+	defer util.LogExit(&s.Ctx.Log)
 
-	c1CtrlClient := s.ctx.C1CtrlClient()
+	c1CtrlClient := s.Ctx.C1CtrlClient()
 	err := CheckCephClusterRunningStatus(c1CtrlClient)
 	if err != nil {
 		return err
 	}
 
-	c2CtrlClient := s.ctx.C2CtrlClient()
+	c2CtrlClient := s.Ctx.C2CtrlClient()
 	err = CheckCephClusterRunningStatus(c2CtrlClient)
 	if err != nil {
 		return err
 	}
-	s.ctx.Log.Info("TestCephClusterStatus: Pass")
+	s.Ctx.Log.Info("TestCephClusterStatus: Pass")
 	return nil
 
 }

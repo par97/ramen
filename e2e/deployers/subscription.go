@@ -42,7 +42,8 @@ func (s Subscription) Deploy(w workloads.Workload) error {
 	// Generate a Subscription for the Workload
 	// - Kustomize the Workload; call Workload.Kustomize(StorageType)
 	// Address namespace/label/suffix as needed for various resources
-	s.Ctx.Log.Info("enter Subscription Deploy")
+	util.LogEnter(&s.Ctx.Log)
+	defer util.LogExit(&s.Ctx.Log)
 
 	// w.Kustomize()
 	err := createNamespace(s.Ctx, s.Namespace)
@@ -67,7 +68,8 @@ func (s Subscription) Deploy(w workloads.Workload) error {
 
 func (s Subscription) Undeploy(w workloads.Workload) error {
 	// Delete Subscription, Placement, Binding
-	s.Ctx.Log.Info("enter Subscription Undeploy")
+	util.LogEnter(&s.Ctx.Log)
+	defer util.LogExit(&s.Ctx.Log)
 
 	err := s.deleteSubscription()
 	if err != nil {
@@ -90,7 +92,8 @@ func (s Subscription) Undeploy(w workloads.Workload) error {
 }
 
 func (s Subscription) Health(w workloads.Workload) error {
-	s.Ctx.Log.Info("enter Subscription Health")
+	util.LogEnter(&s.Ctx.Log)
+	defer util.LogExit(&s.Ctx.Log)
 	w.GetResources()
 	// Check health using reflection to known types of the workload on the targetCluster
 	// Again if using reflection can be a common function outside of deployer as such
