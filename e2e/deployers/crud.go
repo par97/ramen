@@ -207,7 +207,7 @@ func (s *Subscription) createSubscription(w workloads.Workload) error {
 	// Construct PlacementRef
 	objReplacementRef := corev1.ObjectReference{
 		Kind: "Placement",
-		Name: util.DefaultPlacement,
+		Name: s.PlacementName,
 	}
 
 	objPlacementRulePlacement := &placementrulev1.Placement{}

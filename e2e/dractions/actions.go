@@ -35,11 +35,7 @@ func (r DRActions) EnableProtection(w workloads.Workload, d deployers.Deployer) 
 		drPolicyName := util.DefaultDRPolicy
 		appname := w.GetAppName()
 
-		//TODO: improve placement name
-		placementName := util.DefaultPlacement
-		if isAppSet {
-			placementName = d.GetName() + "-placement"
-		}
+		placementName := d.GetName() + "-placement"
 
 		drpcName := name + "-drpc"
 		client := r.Ctx.HubCtrlClient()
@@ -128,11 +124,7 @@ func (r DRActions) DisableProtection(w workloads.Workload, d deployers.Deployer)
 		name := d.GetName()
 		namespace := d.GetNameSpace()
 
-		//TODO: improve placement name
-		placementName := util.DefaultPlacement
-		if isAppSet {
-			placementName = d.GetName() + "-placement"
-		}
+		placementName := d.GetName() + "-placement"
 
 		drpcName := name + "-drpc"
 		client := r.Ctx.HubCtrlClient()

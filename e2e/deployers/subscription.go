@@ -30,7 +30,6 @@ func (s *Subscription) Init() {
 	s.ChannelName = "ramen-gitops"
 	s.ChannelNamespace = "ramen-samples"
 	s.SubscriptionName = s.Name
-
 }
 
 func (s Subscription) GetName() string {
@@ -59,7 +58,7 @@ func (s Subscription) Deploy(w workloads.Workload) error {
 	if err != nil {
 		return err
 	}
-	err = createPlacement(s.Ctx, util.DefaultPlacement, s.Namespace, s.Name)
+	err = createPlacement(s.Ctx, s.PlacementName, s.Namespace, s.Name)
 	if err != nil {
 		return err
 	}
@@ -79,7 +78,7 @@ func (s Subscription) Undeploy(w workloads.Workload) error {
 	if err != nil {
 		return err
 	}
-	err = deletePlacement(s.Ctx, util.DefaultPlacement, s.Namespace)
+	err = deletePlacement(s.Ctx, s.PlacementName, s.Namespace)
 	if err != nil {
 		return err
 	}
