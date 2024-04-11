@@ -11,20 +11,26 @@ type Subscription struct {
 	// channel string
 	Ctx *util.TestContext
 
+	Name      string
+	Namespace string
+
+	PlacementName string
+	McsbName      string
+
 	ChannelName      string
 	ChannelNamespace string
 	SubscriptionName string
-
-	Name      string // deployment-rbd
-	Namespace string // deployment-rbd
 }
 
 func (s *Subscription) Init() {
+	s.Name = "subscription"
+	s.Namespace = s.Name + "-ns"
+	s.PlacementName = s.Name + "-placement"
+	s.McsbName = "default"
 	s.ChannelName = "ramen-gitops"
 	s.ChannelNamespace = "ramen-samples"
-	s.SubscriptionName = "subscription"
-	s.Name = "deployment-rbd"
-	s.Namespace = "deployment-rbd"
+	s.SubscriptionName = s.Name
+
 }
 
 func (s Subscription) GetName() string {
@@ -49,7 +55,7 @@ func (s Subscription) Deploy(w workloads.Workload) error {
 	if err != nil {
 		return err
 	}
-	err = createManagedClusterSetBinding(s.Ctx, "default", s.Namespace, s.Name)
+	err = createManagedClusterSetBinding(s.Ctx, s.McsbName, s.Namespace, s.Name)
 	if err != nil {
 		return err
 	}
@@ -77,7 +83,7 @@ func (s Subscription) Undeploy(w workloads.Workload) error {
 	if err != nil {
 		return err
 	}
-	err = deleteManagedClusterSetBinding(s.Ctx, "default", s.Namespace)
+	err = deleteManagedClusterSetBinding(s.Ctx, s.McsbName, s.Namespace)
 	if err != nil {
 		return err
 	}

@@ -19,7 +19,7 @@ type ApplicationSet struct {
 }
 
 func (a *ApplicationSet) Init() {
-	a.Name = "busybox-appset"
+	a.Name = "appset"
 	a.Namespace = "argocd"
 	// a.ArgoCDNamespace = "argocd"
 	a.PlacementName = a.Name + "-placement"

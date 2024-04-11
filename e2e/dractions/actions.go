@@ -121,12 +121,19 @@ func (r DRActions) DisableProtection(w workloads.Workload, d deployers.Deployer)
 	// update placement annotation
 	r.Ctx.Log.Info("enter DRActions DisableProtection")
 
-	_, ok := d.(*deployers.Subscription)
-	if ok {
+	_, isSub := d.(*deployers.Subscription)
+	_, isAppSet := d.(*deployers.ApplicationSet)
+	if isSub || isAppSet {
 
 		name := d.GetName()
 		namespace := d.GetNameSpace()
+
+		//TODO: improve placement name
 		placementName := util.DefaultPlacement
+		if isAppSet {
+			placementName = d.GetName() + "-placement"
+		}
+
 		drpcName := name + "-drpc"
 		client := r.Ctx.HubCtrlClient()
 
