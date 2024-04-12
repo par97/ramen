@@ -177,10 +177,10 @@ func (r DRActions) Failover(w workloads.Workload, d deployers.Deployer) error {
 	// enable phase check when necessary
 	// here we expect phase should be Deployed before failover
 	// TODO: will update for other valid phases
-	err = r.waitDRPCPhase(client, namespace, drpcName, "Deployed")
-	if err != nil {
-		return err
-	}
+	// err = r.waitDRPCPhase(client, namespace, drpcName, "Deployed")
+	// if err != nil {
+	// 	return err
+	// }
 
 	r.Ctx.Log.Info("get drpc " + drpcName)
 	drpc, err := getDRPC(client, namespace, drpcName)
@@ -194,18 +194,14 @@ func (r DRActions) Failover(w workloads.Workload, d deployers.Deployer) error {
 		return err
 	}
 
-	preferredCluster := drpc.Spec.PreferredCluster
-	failoverCluster := ""
-
-	if preferredCluster == drpolicy.Spec.DRClusters[0] {
-		failoverCluster = drpolicy.Spec.DRClusters[1]
-	} else {
-		failoverCluster = drpolicy.Spec.DRClusters[0]
+	targetCluster, err := r.getTargetCluster(client, namespace, name, drpolicy)
+	if err != nil {
+		return err
 	}
 
-	r.Ctx.Log.Info("preferredCluster: " + preferredCluster + " -> failoverCluster: " + failoverCluster)
+	r.Ctx.Log.Info("failover to cluster: " + targetCluster)
 	drpc.Spec.Action = "Failover"
-	drpc.Spec.FailoverCluster = failoverCluster
+	drpc.Spec.FailoverCluster = targetCluster
 
 	r.Ctx.Log.Info("update drpc " + drpcName)
 	err = updateDRPC(client, drpc)
@@ -237,6 +233,7 @@ func (r DRActions) Relocate(w workloads.Workload, d deployers.Deployer) error {
 	name := d.GetName()
 	namespace := d.GetNameSpace()
 	//placementName := w.GetPlacementName()
+	drPolicyName := util.DefaultDRPolicy
 	drpcName := name
 	client := r.Ctx.HubCtrlClient()
 
@@ -249,10 +246,10 @@ func (r DRActions) Relocate(w workloads.Workload, d deployers.Deployer) error {
 	// enable phase check when necessary
 	// here we expect phase should be FailedOver before relocate
 	// TODO: will update for other valid phases
-	err = r.waitDRPCPhase(client, namespace, drpcName, "FailedOver")
-	if err != nil {
-		return err
-	}
+	// err = r.waitDRPCPhase(client, namespace, drpcName, "FailedOver")
+	// if err != nil {
+	// 	return err
+	// }
 
 	r.Ctx.Log.Info("get drpc " + drpcName)
 	drpc, err := getDRPC(client, namespace, drpcName)
@@ -260,7 +257,19 @@ func (r DRActions) Relocate(w workloads.Workload, d deployers.Deployer) error {
 		return err
 	}
 
+	r.Ctx.Log.Info("get drpolicy " + drPolicyName)
+	drpolicy, err := getDRPolicy(client, drPolicyName)
+	if err != nil {
+		return err
+	}
+
+	targetCluster, err := r.getTargetCluster(client, namespace, name, drpolicy)
+	if err != nil {
+		return err
+	}
+	r.Ctx.Log.Info("relocate to cluster: " + targetCluster)
 	drpc.Spec.Action = "Relocate"
+	drpc.Spec.PreferredCluster = targetCluster
 
 	r.Ctx.Log.Info("update drpc " + drpcName)
 	err = updateDRPC(client, drpc)
