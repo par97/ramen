@@ -2,6 +2,7 @@ package dractions
 
 import (
 	"fmt"
+	"time"
 
 	ramen "github.com/ramendr/ramen/api/v1alpha1"
 	"github.com/ramendr/ramen/e2e/deployers"
@@ -209,6 +210,9 @@ func (r DRActions) Failover(w workloads.Workload, d deployers.Deployer) error {
 		return err
 	}
 
+	//sleep to wait for DRPC is processed
+	time.Sleep(5 * time.Second)
+
 	// check Phase
 	err = r.waitDRPCPhase(client, namespace, drpcName, "FailedOver")
 	if err != nil {
@@ -276,6 +280,9 @@ func (r DRActions) Relocate(w workloads.Workload, d deployers.Deployer) error {
 	if err != nil {
 		return err
 	}
+
+	//sleep to wait for DRPC is processed
+	time.Sleep(5 * time.Second)
 
 	// check Phase
 	err = r.waitDRPCPhase(client, namespace, drpcName, "Relocated")
