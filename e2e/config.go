@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"strconv"
 
 	"github.com/ramendr/ramen/e2e/util"
 	"github.com/spf13/viper"
@@ -62,6 +64,28 @@ func readConfig() (*util.Config, error) {
 
 	if err := validateConfig(config); err != nil {
 		return nil, fmt.Errorf("failed to validate configuration: %v", err)
+	}
+
+	timeout, success := os.LookupEnv("e2e_timeout")
+	if success {
+		timeout_i, err := strconv.Atoi(timeout)
+		if err == nil {
+			config.Timeout = timeout_i
+		} else {
+			fmt.Fprintf(os.Stderr, "error: %v\n", err)
+			os.Exit(1)
+		}
+	}
+
+	interval, success := os.LookupEnv("e2e_interval")
+	if success {
+		interval_i, err := strconv.Atoi(interval)
+		if err == nil {
+			config.Interval = interval_i
+		} else {
+			fmt.Fprintf(os.Stderr, "error: %v\n", err)
+			os.Exit(1)
+		}
 	}
 
 	return config, nil
