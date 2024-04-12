@@ -10,8 +10,8 @@ import (
 
 func (r DRActions) waitPlacementDecision(client client.Client, namespace string, placementName string) (*v1beta1.Placement, string, error) {
 
-	timeout := 300 //seconds
-	interval := 30 //seconds
+	timeout := r.Ctx.Config.Timeout
+	interval := r.Ctx.Config.Interval
 	startTime := time.Now()
 	placementDecisionName := ""
 
@@ -39,8 +39,8 @@ func (r DRActions) waitPlacementDecision(client client.Client, namespace string,
 
 func (r DRActions) waitDRPCReady(client client.Client, namespace string, drpcName string) error {
 
-	timeout := 300 //seconds
-	interval := 30 //seconds
+	timeout := r.Ctx.Config.Timeout
+	interval := r.Ctx.Config.Interval
 	startTime := time.Now()
 	for {
 		ready := true
@@ -81,8 +81,8 @@ func (r DRActions) waitDRPCReady(client client.Client, namespace string, drpcNam
 
 func (r DRActions) waitDRPCPhase(client client.Client, namespace string, drpcName string, phase string) error {
 
-	timeout := 600 //seconds
-	interval := 30 //seconds
+	timeout := r.Ctx.Config.Timeout
+	interval := r.Ctx.Config.Interval
 	startTime := time.Now()
 	for {
 		drpc, err := getDRPC(client, namespace, drpcName)

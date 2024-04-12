@@ -30,6 +30,8 @@ type Config struct {
 	Clusters map[string]struct {
 		KubeconfigPath string `mapstructure:"kubeconfigpath" required:"true"`
 	} `mapstructure:"clusters" required:"true"`
+	Timeout  int    `mapstructure:"timeout" required:"true"`
+	Interval int    `mapstructure:"interval" required:"true"`
 	DRPolicy string `mapstructure:"drpolicy" required:"true"`
 	Github   struct {
 		Repo   string

@@ -32,6 +32,14 @@ func validateConfig(config *util.Config) error {
 		return fmt.Errorf("failed to find channel branch in configuration")
 	}
 
+	if config.Timeout < 0 {
+		return fmt.Errorf("timeout value is negative")
+	}
+
+	if config.Interval < 0 {
+		return fmt.Errorf("interval value is negative")
+	}
+
 	return nil
 }
 

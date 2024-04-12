@@ -50,10 +50,10 @@ func (s *AppSetSuite) Tests() []Test {
 
 	return []Test{
 		s.TestWorkloadDeployment,
-		// s.TestEnableProtection,
-		// s.TestWorkloadFailover,
-		// s.TestWorkloadRelocation,
-		// s.TestDisableProtection,
+		s.TestEnableProtection,
+		s.TestWorkloadFailover,
+		s.TestWorkloadRelocation,
+		s.TestDisableProtection,
 		s.TestWorkloadUndeployment,
 	}
 }
