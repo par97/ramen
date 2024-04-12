@@ -35,9 +35,8 @@ func (r DRActions) EnableProtection(w workloads.Workload, d deployers.Deployer) 
 		drPolicyName := util.DefaultDRPolicy
 		appname := w.GetAppName()
 
-		placementName := d.GetName() + "-placement"
-
-		drpcName := name + "-drpc"
+		placementName := name
+		drpcName := name
 		client := r.Ctx.HubCtrlClient()
 
 		placement, placementDecisionName, err := r.waitPlacementDecision(client, namespace, placementName)
@@ -124,9 +123,9 @@ func (r DRActions) DisableProtection(w workloads.Workload, d deployers.Deployer)
 		name := d.GetName()
 		namespace := d.GetNameSpace()
 
-		placementName := d.GetName() + "-placement"
+		placementName := name
 
-		drpcName := name + "-drpc"
+		drpcName := name
 		client := r.Ctx.HubCtrlClient()
 
 		r.Ctx.Log.Info("delete drpc " + drpcName)
@@ -166,7 +165,7 @@ func (r DRActions) Failover(w workloads.Workload, d deployers.Deployer) error {
 	namespace := d.GetNameSpace()
 	//placementName := w.GetPlacementName()
 	drPolicyName := util.DefaultDRPolicy
-	drpcName := name + "-drpc"
+	drpcName := name
 	client := r.Ctx.HubCtrlClient()
 
 	// here we expect drpc should be ready before failover
@@ -238,7 +237,7 @@ func (r DRActions) Relocate(w workloads.Workload, d deployers.Deployer) error {
 	name := d.GetName()
 	namespace := d.GetNameSpace()
 	//placementName := w.GetPlacementName()
-	drpcName := name + "-drpc"
+	drpcName := name
 	client := r.Ctx.HubCtrlClient()
 
 	// here we expect drpc should be ready before relocate

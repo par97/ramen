@@ -149,6 +149,8 @@ func deleteConfigMap(ctx *util.TestContext, cmName string, cmNamespace string) e
 	return nil
 }
 
+// argocd command currently has bug to honor the --namespace param
+// see https://github.com/argoproj/argo-cd/issues/14167
 func (a *ApplicationSet) addArgoCDClusters() error {
 	//TODO: clusternames better to be dynamically got from config
 	for _, c := range util.ClusterNames {
@@ -163,6 +165,8 @@ func (a *ApplicationSet) addArgoCDClusters() error {
 	return nil
 }
 
+// argocd command currently has bug to honor the --namespace param
+// see https://github.com/argoproj/argo-cd/issues/14167
 func (a *ApplicationSet) deleteArgoCDClusters() error {
 	for _, c := range util.ClusterNames {
 		a.Ctx.Log.Info("delete cluster " + c + " from ArgoCD")

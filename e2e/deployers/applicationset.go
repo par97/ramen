@@ -37,12 +37,13 @@ func (a ApplicationSet) Deploy(w workloads.Workload) error {
 	// w.Kustomize()
 	a.Ctx.Log.Info("enter ApplicationSet Deploy")
 
-	err := a.addArgoCDClusters()
-	if err != nil {
-		return err
-	}
+	// don't use, this function is problematic
+	// err := a.addArgoCDClusters()
+	// if err != nil {
+	// 	return err
+	// }
 
-	err = createManagedClusterSetBinding(a.Ctx, a.McsbName, a.Namespace, a.Name)
+	err := createManagedClusterSetBinding(a.Ctx, a.McsbName, a.Namespace, a.Name)
 	if err != nil {
 		return err
 	}
