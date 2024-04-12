@@ -215,7 +215,7 @@ func (s *Subscription) createSubscription(w workloads.Workload) error {
 
 	objSubscription := &subscriptionv1.Subscription{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:        s.SubscriptionName,
+			Name:        s.Name,
 			Namespace:   s.Namespace,
 			Labels:      labels,
 			Annotations: annotations,
@@ -319,7 +319,7 @@ func (s *Subscription) deleteSubscription() error {
 
 	objSubscription := &subscriptionv1.Subscription{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      s.SubscriptionName,
+			Name:      s.Name,
 			Namespace: s.Namespace,
 		},
 	}
@@ -330,7 +330,7 @@ func (s *Subscription) deleteSubscription() error {
 			fmt.Printf("err: %v\n", err)
 			return err
 		}
-		s.Ctx.Log.Info("subscription " + s.SubscriptionName + " not found")
+		s.Ctx.Log.Info("subscription " + s.Name + " not found")
 	}
 
 	return nil

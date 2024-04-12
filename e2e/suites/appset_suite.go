@@ -29,7 +29,7 @@ func (s *AppSetSuite) SetupSuite() error {
 	s.w = deployment
 
 	sub := &deployers.ApplicationSet{Ctx: s.Ctx}
-	sub.Init()
+	sub.Init(deployment)
 	s.d = sub
 
 	s.r = dractions.DRActions{Ctx: s.Ctx}

@@ -19,17 +19,15 @@ type Subscription struct {
 
 	ChannelName      string
 	ChannelNamespace string
-	SubscriptionName string
 }
 
-func (s *Subscription) Init() {
-	s.Name = "subscription"
-	s.Namespace = s.Name + "-ns"
-	s.PlacementName = s.Name + "-placement"
+func (s *Subscription) Init(w workloads.Workload) {
+	s.Name = "sub-" + w.GetAppName()
+	s.Namespace = s.Name
+	s.PlacementName = s.Name
 	s.McsbName = "default"
 	s.ChannelName = "ramen-gitops"
 	s.ChannelNamespace = "ramen-samples"
-	s.SubscriptionName = s.Name
 }
 
 func (s Subscription) GetName() string {

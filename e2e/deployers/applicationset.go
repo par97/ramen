@@ -11,22 +11,21 @@ type ApplicationSet struct {
 	Name      string
 	Namespace string
 
-	// ArgoCDNamespace                 string
-	PlacementName                   string
-	McsbName                        string
+	PlacementName string
+	McsbName      string
+
 	ClusterDecisionConfigMapName    string
 	ApplicationDestinationNamespace string
 }
 
-func (a *ApplicationSet) Init() {
-	a.Name = "appset"
+func (a *ApplicationSet) Init(w workloads.Workload) {
+	a.Name = "appset-" + w.GetAppName()
+	// appset need be created in argocd ns by default
 	a.Namespace = "argocd"
-	// a.ArgoCDNamespace = "argocd"
-	a.PlacementName = a.Name + "-placement"
+	a.PlacementName = a.Name
 	a.McsbName = "default"
-	a.ClusterDecisionConfigMapName = a.Name + "-configmap"
+	a.ClusterDecisionConfigMapName = a.Name
 	a.ApplicationDestinationNamespace = a.Name
-
 }
 
 func (a ApplicationSet) Deploy(w workloads.Workload) error {
