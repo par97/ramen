@@ -1,6 +1,6 @@
 package util
 
-const DefaultDRPolicy = "dr-policy"
+// const DefaultDRPolicy = "dr-policy"
 const DefaultPlacement = "placement"
 
 // Assume the first element in this array is the hub cluster

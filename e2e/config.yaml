@@ -5,3 +5,7 @@ clusters:
     kubeconfigpath: "kubeconfig/c1/kubeconfig"
   "c2":
     kubeconfigpath: "kubeconfig/c2/kubeconfig"
+drpolicy: "dr-policy"
+github:
+  repo: "https://github.com/ramendr/ocm-ramen-samples.git"
+  branch: "main"

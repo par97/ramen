@@ -6,9 +6,9 @@ type Workload interface {
 
 	GetAppName() string
 
-	GetRepoURL() string // Possibly all this is part of Workload than each implementation of the interfaces?
+	//	GetRepoURL() string // Possibly all this is part of Workload than each implementation of the interfaces?
 	GetPath() string
-	GetRevision() string
+	//	GetRevision() string
 
 	Init()
 }

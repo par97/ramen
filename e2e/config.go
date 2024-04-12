@@ -20,6 +20,18 @@ func validateConfig(config *util.Config) error {
 		return fmt.Errorf("failed to find c2 cluster in configuration")
 	}
 
+	if config.DRPolicy == "" {
+		return fmt.Errorf("failed to find drpolicy in configuration")
+	}
+
+	if config.Github.Repo == "" {
+		return fmt.Errorf("failed to find channel repo in configuration")
+	}
+
+	if config.Github.Branch == "" {
+		return fmt.Errorf("failed to find channel branch in configuration")
+	}
+
 	return nil
 }
 

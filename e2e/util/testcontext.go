@@ -16,7 +16,7 @@ import (
 	// PlacementRule
 	placementrule "open-cluster-management.io/multicloud-operators-subscription/pkg/apis/apps/placementrule/v1"
 	// Channel
-	channel "open-cluster-management.io/multicloud-operators-channel/pkg/apis"
+	// channel "open-cluster-management.io/multicloud-operators-channel/pkg/apis"
 
 	ramen "github.com/ramendr/ramen/api/v1alpha1"
 	rookv1 "github.com/rook/rook/pkg/apis/ceph.rook.io/v1"
@@ -30,6 +30,11 @@ type Config struct {
 	Clusters map[string]struct {
 		KubeconfigPath string `mapstructure:"kubeconfigpath" required:"true"`
 	} `mapstructure:"clusters" required:"true"`
+	DRPolicy string `mapstructure:"drpolicy" required:"true"`
+	Github   struct {
+		Repo   string
+		Branch string
+	} `mapstructure:"github" required:"true"`
 }
 
 type Cluster struct {
@@ -60,7 +65,7 @@ func GetClientSetFromKubeConfigPath(kubeconfigPath string) (*kubernetes.Clientse
 	ocmclusterv1beta1.AddToScheme(scheme.Scheme)
 	ocmclusterv1beta2.AddToScheme(scheme.Scheme)
 	placementrule.AddToScheme(scheme.Scheme)
-	channel.AddToScheme(scheme.Scheme)
+	//channel.AddToScheme(scheme.Scheme)
 	subscription.AddToScheme(scheme.Scheme)
 	rookv1.AddToScheme(scheme.Scheme)
 	ramen.AddToScheme(scheme.Scheme)

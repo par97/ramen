@@ -33,7 +33,7 @@ func (r DRActions) EnableProtection(w workloads.Workload, d deployers.Deployer) 
 
 		name := d.GetName()
 		namespace := d.GetNameSpace()
-		drPolicyName := util.DefaultDRPolicy
+		drPolicyName := r.Ctx.Config.DRPolicy
 		appname := w.GetAppName()
 
 		//TODO: improve placement name
@@ -169,7 +169,7 @@ func (r DRActions) Failover(w workloads.Workload, d deployers.Deployer) error {
 	name := d.GetName()
 	namespace := d.GetNameSpace()
 	//placementName := w.GetPlacementName()
-	drPolicyName := util.DefaultDRPolicy
+	drPolicyName := r.Ctx.Config.DRPolicy
 	drpcName := name + "-drpc"
 	client := r.Ctx.HubCtrlClient()
 

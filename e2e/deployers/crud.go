@@ -50,9 +50,9 @@ func (a *ApplicationSet) createApplicationSet(w workloads.Workload) error {
 				},
 				Spec: argocdv1alpha1hack.ApplicationSpec{
 					Source: &argocdv1alpha1hack.ApplicationSource{
-						RepoURL:        w.GetRepoURL(),
+						RepoURL:        a.Ctx.Config.Github.Repo, // w.GetRepoURL(),
 						Path:           w.GetPath(),
-						TargetRevision: w.GetRevision(),
+						TargetRevision: a.Ctx.Config.Github.Branch, // w.GetRevision(),
 					},
 					Destination: argocdv1alpha1hack.ApplicationDestination{
 						Server:    "{{server}}",
@@ -204,7 +204,7 @@ func (s *Subscription) createSubscription(w workloads.Workload) error {
 	labels["apps"] = s.Name
 
 	annotations := make(map[string]string)
-	annotations["apps.open-cluster-management.io/github-branch"] = w.GetRevision()
+	annotations["apps.open-cluster-management.io/github-branch"] = s.Ctx.Config.Github.Branch // w.GetRevision()
 	annotations["apps.open-cluster-management.io/github-path"] = w.GetPath()
 
 	// Construct PlacementRef
