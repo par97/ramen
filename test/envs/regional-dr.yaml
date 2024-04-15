@@ -56,6 +56,7 @@ templates:
       - addons:
           - name: submariner
             args: ["hub", "dr1", "dr2"]
+          - name: argocd
 
 profiles:
   - name: "dr1"
