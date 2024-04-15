@@ -23,7 +23,6 @@ func configureLogOptions() *zap.Options {
 }
 
 func main() {
-
 	logOpts := configureLogOptions()
 	log := zap.New(zap.UseFlagOptions(logOpts))
 
@@ -43,6 +42,7 @@ func main() {
 		ctx.Log.Error(fmt.Errorf("config is nill"), "config is nill")
 		panic(config)
 	}
+
 	err = configContext(ctx, config)
 	if err != nil {
 		ctx.Log.Error(err, "failed to config TestContext")
@@ -63,7 +63,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-
 }
 
 func RunSuite(suite suites.TestSuite, ctx *util.TestContext) error {
@@ -82,6 +81,7 @@ func RunSuite(suite suites.TestSuite, ctx *util.TestContext) error {
 	for _, test := range suite.Tests() {
 		if err := test(); err != nil {
 			ctx.Log.Error(err, "test failed")
+
 			return fmt.Errorf("test failed: %w", err)
 		}
 	}

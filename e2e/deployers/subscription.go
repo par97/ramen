@@ -50,14 +50,17 @@ func (s Subscription) Deploy(w workloads.Workload) error {
 	if err != nil {
 		return err
 	}
+
 	err = createManagedClusterSetBinding(s.Ctx, "default", s.Namespace, s.Name)
 	if err != nil {
 		return err
 	}
+
 	err = createPlacement(s.Ctx, util.DefaultPlacement, s.Namespace, s.Name)
 	if err != nil {
 		return err
 	}
+
 	err = s.createSubscription(w)
 	if err != nil {
 		return err
@@ -75,14 +78,17 @@ func (s Subscription) Undeploy(w workloads.Workload) error {
 	if err != nil {
 		return err
 	}
+
 	err = deletePlacement(s.Ctx, util.DefaultPlacement, s.Namespace)
 	if err != nil {
 		return err
 	}
+
 	err = deleteManagedClusterSetBinding(s.Ctx, "default", s.Namespace)
 	if err != nil {
 		return err
 	}
+
 	err = deleteNamespace(s.Ctx, s.Namespace)
 	if err != nil {
 		return err
@@ -94,7 +100,7 @@ func (s Subscription) Undeploy(w workloads.Workload) error {
 func (s Subscription) Health(w workloads.Workload) error {
 	util.LogEnter(&s.Ctx.Log)
 	defer util.LogExit(&s.Ctx.Log)
-	w.GetResources()
+	// w.GetResources()
 	// Check health using reflection to known types of the workload on the targetCluster
 	// Again if using reflection can be a common function outside of deployer as such
 	return nil

@@ -34,6 +34,7 @@ func (s *AppSetSuite) SetupSuite() error {
 	s.d = sub
 
 	s.r = dractions.DRActions{Ctx: s.Ctx}
+
 	return nil
 }
 
@@ -62,12 +63,12 @@ func (s *AppSetSuite) TestWorkloadDeployment() error {
 	util.LogEnter(&s.Ctx.Log)
 	defer util.LogExit(&s.Ctx.Log)
 
-	err := s.d.Deploy(s.w)
-	if err != nil {
+	if err := s.d.Deploy(s.w); err != nil {
 		return err
 	}
+
 	s.Ctx.Log.Info("TestWorkloadDeployment: Pass")
-	util.Pause()
+
 	return nil
 }
 
@@ -79,7 +80,9 @@ func (s *AppSetSuite) TestEnableProtection() error {
 	if err != nil {
 		return err
 	}
+
 	s.Ctx.Log.Info("TestEnableProtection: Pass")
+
 	return nil
 }
 
@@ -87,11 +90,12 @@ func (s *AppSetSuite) TestWorkloadFailover() error {
 	util.LogEnter(&s.Ctx.Log)
 	defer util.LogExit(&s.Ctx.Log)
 
-	err := s.r.Failover(s.w, s.d)
-	if err != nil {
+	if err := s.r.Failover(s.w, s.d); err != nil {
 		return err
 	}
+
 	s.Ctx.Log.Info("TestWorkloadFailover: Pass")
+
 	return nil
 }
 
@@ -99,11 +103,12 @@ func (s *AppSetSuite) TestWorkloadRelocation() error {
 	util.LogEnter(&s.Ctx.Log)
 	defer util.LogExit(&s.Ctx.Log)
 
-	err := s.r.Relocate(s.w, s.d)
-	if err != nil {
+	if err := s.r.Relocate(s.w, s.d); err != nil {
 		return err
 	}
+
 	s.Ctx.Log.Info("TestWorkloadRelocation: Pass")
+
 	return nil
 }
 
@@ -115,7 +120,9 @@ func (s *AppSetSuite) TestDisableProtection() error {
 	if err != nil {
 		return err
 	}
+
 	s.Ctx.Log.Info("TestDisableProtection: Pass")
+
 	return nil
 }
 
@@ -123,10 +130,11 @@ func (s *AppSetSuite) TestWorkloadUndeployment() error {
 	util.LogEnter(&s.Ctx.Log)
 	defer util.LogExit(&s.Ctx.Log)
 
-	err := s.d.Undeploy(s.w)
-	if err != nil {
+	if err := s.d.Undeploy(s.w); err != nil {
 		return err
 	}
+
 	s.Ctx.Log.Info("TestWorkloadUndeployment: Pass")
+
 	return nil
 }

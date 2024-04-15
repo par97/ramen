@@ -64,14 +64,45 @@ func GetClientSetFromKubeConfigPath(kubeconfigPath string) (*kubernetes.Clientse
 		return nil, nil, err
 	}
 
-	ocmclusterv1beta1.AddToScheme(scheme.Scheme)
-	ocmclusterv1beta2.AddToScheme(scheme.Scheme)
-	placementrule.AddToScheme(scheme.Scheme)
-	//channel.AddToScheme(scheme.Scheme)
-	subscription.AddToScheme(scheme.Scheme)
-	rookv1.AddToScheme(scheme.Scheme)
-	ramen.AddToScheme(scheme.Scheme)
-	argocdv1alpha1hack.AddToScheme(scheme.Scheme)
+	err = ocmclusterv1beta1.AddToScheme(scheme.Scheme)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	err = ocmclusterv1beta2.AddToScheme(scheme.Scheme)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	err = placementrule.AddToScheme(scheme.Scheme)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// err = channel.AddToScheme(scheme.Scheme)
+	// if err != nil {
+	// 	return nil, nil, err
+	// }
+
+	err = subscription.AddToScheme(scheme.Scheme)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	err = rookv1.AddToScheme(scheme.Scheme)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	err = ramen.AddToScheme(scheme.Scheme)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	err = argocdv1alpha1hack.AddToScheme(scheme.Scheme)
+	if err != nil {
+		return nil, nil, err
+	}
 
 	ctrlClient, err := client.New(config, client.Options{Scheme: scheme.Scheme})
 	if err != nil {
@@ -123,20 +154,24 @@ func (ctx *TestContext) GetClusters() Clusters {
 
 func (ctx *TestContext) GetHubClusters() Clusters {
 	hubClusters := make(Clusters)
+
 	for clusterName, cluster := range ctx.Clusters {
 		if strings.Contains(clusterName, "hub") {
 			hubClusters[clusterName] = cluster
 		}
 	}
+
 	return hubClusters
 }
 
 func (ctx *TestContext) GetManagedClusters() Clusters {
 	managedClusters := make(Clusters)
+
 	for clusterName, cluster := range ctx.Clusters {
 		if !strings.Contains(clusterName, "hub") {
 			managedClusters[clusterName] = cluster
 		}
 	}
+
 	return managedClusters
 }

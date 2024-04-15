@@ -78,8 +78,10 @@ func (a *ApplicationSet) createApplicationSet(w workloads.Workload) error {
 	if err != nil {
 		if !errors.IsAlreadyExists(err) {
 			a.Ctx.Log.Error(err, "")
+
 			return err
 		}
+
 		a.Ctx.Log.Info("applicationset " + appset.Name + " already Exists")
 	}
 
@@ -101,15 +103,17 @@ func (a *ApplicationSet) deleteApplicationSet() error {
 	if err != nil {
 		if !errors.IsNotFound(err) {
 			a.Ctx.Log.Error(err, "")
+
 			return err
 		}
+
 		a.Ctx.Log.Info("applicationset " + appset.Name + " not found")
 	}
+
 	return nil
 }
 
 func createPlacementDecisionConfigMap(ctx *util.TestContext, cmName string, cmNamespace string) error {
-
 	object := metav1.ObjectMeta{Name: cmName, Namespace: cmNamespace}
 
 	data := map[string]string{
@@ -125,15 +129,17 @@ func createPlacementDecisionConfigMap(ctx *util.TestContext, cmName string, cmNa
 	if err != nil {
 		if !errors.IsAlreadyExists(err) {
 			ctx.Log.Error(err, "")
+
 			return fmt.Errorf("could not create configMap " + cmName)
 		}
+
 		ctx.Log.Info("configMap " + cmName + " already Exists")
 	}
+
 	return nil
 }
 
 func deleteConfigMap(ctx *util.TestContext, cmName string, cmNamespace string) error {
-
 	object := metav1.ObjectMeta{Name: cmName, Namespace: cmNamespace}
 
 	configMap := &corev1.ConfigMap{
@@ -144,8 +150,10 @@ func deleteConfigMap(ctx *util.TestContext, cmName string, cmNamespace string) e
 	if err != nil {
 		if !errors.IsNotFound(err) {
 			ctx.Log.Error(err, "")
+
 			return fmt.Errorf("could not delete configMap " + cmName)
 		}
+
 		ctx.Log.Info("configMap " + cmName + " not found")
 	}
 
@@ -157,30 +165,34 @@ func (a *ApplicationSet) addArgoCDClusters() error {
 	for _, c := range util.ClusterNames {
 		a.Ctx.Log.Info("add cluster " + c + " into ArgoCD")
 		cmd := exec.Command("argocd", "cluster", "add", c, " -y --namespace argocd --kubeconfig "+a.Ctx.HubKubeconfig())
-		out, err := util.RunCommand(cmd)
+
+		out, err := util.RunCommand(&a.Ctx.Log, cmd)
 		if err != nil {
 			return err
 		}
+
 		a.Ctx.Log.Info(out)
 	}
+
 	return nil
 }
 
-func (a *ApplicationSet) deleteArgoCDClusters() error {
-	for _, c := range util.ClusterNames {
-		a.Ctx.Log.Info("delete cluster " + c + " from ArgoCD")
-		cmd := exec.Command("argocd", "cluster", "rm", c, " -y")
-		out, err := util.RunCommand(cmd)
-		if err != nil {
-			return err
-		}
-		a.Ctx.Log.Info(out)
-	}
-	return nil
-}
+// func (a *ApplicationSet) deleteArgoCDClusters() error {
+// 	for _, c := range util.ClusterNames {
+// 		a.Ctx.Log.Info("delete cluster " + c + " from ArgoCD")
+// 		cmd := exec.Command("argocd", "cluster", "rm", c, " -y")
+
+// 		out, err := util.RunCommand(&a.Ctx.Log, cmd)
+// 		if err != nil {
+// 			return err
+// 		}
+// 		a.Ctx.Log.Info(out)
+// 	}
+
+// 	return nil
+// }
 
 func createNamespace(ctx *util.TestContext, namespace string) error {
-
 	objNs := &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: namespace,
@@ -191,15 +203,17 @@ func createNamespace(ctx *util.TestContext, namespace string) error {
 	if err != nil {
 		if !errors.IsAlreadyExists(err) {
 			ctx.Log.Error(err, "")
+
 			return err
 		}
+
 		ctx.Log.Info("namespace " + namespace + " already Exists")
 	}
+
 	return nil
 }
 
 func (s *Subscription) createSubscription(w workloads.Workload) error {
-
 	labels := make(map[string]string)
 	labels["apps"] = s.Name
 
@@ -233,8 +247,10 @@ func (s *Subscription) createSubscription(w workloads.Workload) error {
 	if err != nil {
 		if !errors.IsAlreadyExists(err) {
 			s.Ctx.Log.Error(err, "")
+
 			return err
 		}
+
 		s.Ctx.Log.Info("placement " + objSubscription.Name + " already Exists")
 	}
 
@@ -242,11 +258,11 @@ func (s *Subscription) createSubscription(w workloads.Workload) error {
 }
 
 func createPlacement(ctx *util.TestContext, plName string, plNamespace string, appName string) error {
-
 	labels := make(map[string]string)
 	labels["apps"] = appName
 
 	arrayClusterSets := []string{"default"}
+
 	var numClusters int32 = 1
 
 	objPlacement := &ocmclusterv1beta1.Placement{
@@ -265,10 +281,13 @@ func createPlacement(ctx *util.TestContext, plName string, plNamespace string, a
 	if err != nil {
 		if !errors.IsAlreadyExists(err) {
 			ctx.Log.Error(err, "")
+
 			return err
 		}
+
 		ctx.Log.Info("placement " + objPlacement.Name + " already Exists")
 	}
+
 	return nil
 }
 
@@ -292,26 +311,31 @@ func createManagedClusterSetBinding(ctx *util.TestContext, mcsbName string, mcsb
 	if err != nil {
 		if !errors.IsAlreadyExists(err) {
 			ctx.Log.Error(err, "")
+
 			return err
 		}
+
 		ctx.Log.Info("managedClusterSetBinding " + objMCSB.Name + " already Exists")
 	}
+
 	return nil
 }
 
 func deleteNamespace(ctx *util.TestContext, namespace string) error {
-
 	objNs := &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: namespace,
 		},
 	}
+
 	err := ctx.HubCtrlClient().Delete(context.Background(), objNs)
 	if err != nil {
 		if !errors.IsNotFound(err) {
 			ctx.Log.Error(err, "")
+
 			return err
 		}
+
 		ctx.Log.Info("namespace " + namespace + " not found")
 	}
 
@@ -319,7 +343,6 @@ func deleteNamespace(ctx *util.TestContext, namespace string) error {
 }
 
 func (s *Subscription) deleteSubscription() error {
-
 	objSubscription := &subscriptionv1.Subscription{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      s.SubscriptionName,
@@ -331,8 +354,10 @@ func (s *Subscription) deleteSubscription() error {
 	if err != nil {
 		if !errors.IsNotFound(err) {
 			s.Ctx.Log.Error(err, "")
+
 			return err
 		}
+
 		s.Ctx.Log.Info("subscription " + s.SubscriptionName + " not found")
 	}
 
@@ -340,11 +365,10 @@ func (s *Subscription) deleteSubscription() error {
 }
 
 func deletePlacement(ctx *util.TestContext, plName string, plNamespace string) error {
-
 	objPlacement := &ocmclusterv1beta1.Placement{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      plName,      // util.DefaultPlacement,
-			Namespace: plNamespace, //s.Namespace,
+			Namespace: plNamespace, // s.Namespace,
 		},
 	}
 
@@ -352,15 +376,17 @@ func deletePlacement(ctx *util.TestContext, plName string, plNamespace string) e
 	if err != nil {
 		if !errors.IsNotFound(err) {
 			ctx.Log.Error(err, "")
+
 			return err
 		}
+
 		ctx.Log.Info("placement " + plName + " not found")
 	}
+
 	return nil
 }
 
 func deleteManagedClusterSetBinding(ctx *util.TestContext, mcsbName string, mcsbNamespace string) error {
-
 	objMCSB := &ocmclusterv1beta2.ManagedClusterSetBinding{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      mcsbName,      // "default",
@@ -372,10 +398,13 @@ func deleteManagedClusterSetBinding(ctx *util.TestContext, mcsbName string, mcsb
 	if err != nil {
 		if !errors.IsNotFound(err) {
 			ctx.Log.Error(err, "")
+
 			return err
 		}
+
 		ctx.Log.Info("managedClusterSetBinding default not found")
 	}
+
 	return nil
 }
 

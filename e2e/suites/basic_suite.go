@@ -34,18 +34,21 @@ func (s *BasicSuite) SetupSuite() error {
 	s.d = sub
 
 	s.r = dractions.DRActions{Ctx: s.Ctx}
+
 	return nil
 }
 
 func (s *BasicSuite) TeardownSuite() error {
 	util.LogEnter(&s.Ctx.Log)
 	defer util.LogExit(&s.Ctx.Log)
+
 	return nil
 }
 
 func (s *BasicSuite) Tests() []Test {
 	util.LogEnter(&s.Ctx.Log)
 	defer util.LogExit(&s.Ctx.Log)
+
 	return []Test{
 		s.TestWorkloadDeployment,
 		s.TestEnableProtection,
@@ -60,11 +63,12 @@ func (s *BasicSuite) TestWorkloadDeployment() error {
 	util.LogEnter(&s.Ctx.Log)
 	defer util.LogExit(&s.Ctx.Log)
 
-	err := s.d.Deploy(s.w)
-	if err != nil {
+	if err := s.d.Deploy(s.w); err != nil {
 		return err
 	}
+
 	s.Ctx.Log.Info("TestWorkloadDeployment: Pass")
+
 	return nil
 }
 
@@ -76,7 +80,9 @@ func (s *BasicSuite) TestEnableProtection() error {
 	if err != nil {
 		return err
 	}
+
 	s.Ctx.Log.Info("TestEnableProtection: Pass")
+
 	return nil
 }
 
@@ -84,11 +90,12 @@ func (s *BasicSuite) TestWorkloadFailover() error {
 	util.LogEnter(&s.Ctx.Log)
 	defer util.LogExit(&s.Ctx.Log)
 
-	err := s.r.Failover(s.w, s.d)
-	if err != nil {
+	if err := s.r.Failover(s.w, s.d); err != nil {
 		return err
 	}
+
 	s.Ctx.Log.Info("TestWorkloadFailover: Pass")
+
 	return nil
 }
 
@@ -96,11 +103,12 @@ func (s *BasicSuite) TestWorkloadRelocation() error {
 	util.LogEnter(&s.Ctx.Log)
 	defer util.LogExit(&s.Ctx.Log)
 
-	err := s.r.Relocate(s.w, s.d)
-	if err != nil {
+	if err := s.r.Relocate(s.w, s.d); err != nil {
 		return err
 	}
+
 	s.Ctx.Log.Info("TestWorkloadRelocation: Pass")
+
 	return nil
 }
 
@@ -112,7 +120,9 @@ func (s *BasicSuite) TestDisableProtection() error {
 	if err != nil {
 		return err
 	}
+
 	s.Ctx.Log.Info("TestDisableProtection: Pass")
+
 	return nil
 }
 
@@ -120,10 +130,11 @@ func (s *BasicSuite) TestWorkloadUndeployment() error {
 	util.LogEnter(&s.Ctx.Log)
 	defer util.LogExit(&s.Ctx.Log)
 
-	err := s.d.Undeploy(s.w)
-	if err != nil {
+	if err := s.d.Undeploy(s.w); err != nil {
 		return err
 	}
+
 	s.Ctx.Log.Info("TestWorkloadUndeployment: Pass")
+
 	return nil
 }

@@ -47,7 +47,7 @@ func (s *PrecheckSuite) Tests() []Test {
 		s.TestRamenHubOperatorStatus,
 		s.TestRamenSpokeOperatorStatus,
 		s.TestCephClusterStatus,
-		//check other operator like cert manager, csi, ocm, submariner, rook, velero, minio, volsync
+		// check other operator like cert manager, csi, ocm, submariner, rook, velero, minio, volsync
 	}
 }
 
@@ -67,6 +67,7 @@ func (s *PrecheckSuite) TestRamenHubOperatorStatus() error {
 	}
 
 	s.Ctx.Log.Info("TestRamenHubOperatorStatus: Pass")
+
 	return nil
 }
 
@@ -97,8 +98,8 @@ func (s *PrecheckSuite) TestRamenSpokeOperatorStatus() error {
 	}
 
 	s.Ctx.Log.Info("TestRamenSpokeOperatorStatus: Pass")
-	return nil
 
+	return nil
 }
 
 // CheckPodRunningStatus checks if there is at least one pod matching the labelSelector
@@ -183,19 +184,22 @@ func (s *PrecheckSuite) TestCephClusterStatus() error {
 	defer util.LogExit(&s.Ctx.Log)
 
 	c1CtrlClient := s.Ctx.C1CtrlClient()
+
 	err := CheckCephClusterRunningStatus(c1CtrlClient)
 	if err != nil {
 		return err
 	}
 
 	c2CtrlClient := s.Ctx.C2CtrlClient()
+
 	err = CheckCephClusterRunningStatus(c2CtrlClient)
 	if err != nil {
 		return err
 	}
-	s.Ctx.Log.Info("TestCephClusterStatus: Pass")
-	return nil
 
+	s.Ctx.Log.Info("TestCephClusterStatus: Pass")
+
+	return nil
 }
 
 func CheckCephClusterRunningStatus(ctrlClient client.Client) error {
@@ -211,12 +215,15 @@ func CheckCephClusterRunningStatus(ctrlClient client.Client) error {
 	if len(cephclusterList.Items) == 0 {
 		return fmt.Errorf("found 0 cephcluster")
 	}
+
 	if len(cephclusterList.Items) > 1 {
 		return fmt.Errorf("found more than 1 cephcluster")
 	}
+
 	phase := fmt.Sprint(cephclusterList.Items[0].Status.Phase)
 	if phase != "Ready" {
 		return fmt.Errorf("cephcluster is not Ready")
 	}
+
 	return nil
 }

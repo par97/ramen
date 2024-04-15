@@ -68,22 +68,22 @@ func readConfig() (*util.Config, error) {
 
 	timeout, success := os.LookupEnv("e2e_timeout")
 	if success {
-		timeout_i, err := strconv.Atoi(timeout)
+		timeoutInt, err := strconv.Atoi(timeout)
 		if err == nil {
-			config.Timeout = timeout_i
+			config.Timeout = timeoutInt
 		} else {
-			fmt.Fprintf(os.Stderr, "error: %v\n", err)
+			_, _ = fmt.Fprintf(os.Stderr, "error: %v\n", err)
 			os.Exit(1)
 		}
 	}
 
 	interval, success := os.LookupEnv("e2e_interval")
 	if success {
-		interval_i, err := strconv.Atoi(interval)
+		intervalInt, err := strconv.Atoi(interval)
 		if err == nil {
-			config.Interval = interval_i
+			config.Interval = intervalInt
 		} else {
-			fmt.Fprintf(os.Stderr, "error: %v\n", err)
+			_, _ = fmt.Fprintf(os.Stderr, "error: %v\n", err)
 			os.Exit(1)
 		}
 	}
@@ -92,7 +92,6 @@ func readConfig() (*util.Config, error) {
 }
 
 func configContext(ctx *util.TestContext, config *util.Config) error {
-
 	ctx.Config = config
 	ctx.Clusters = make(util.Clusters)
 

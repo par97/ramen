@@ -15,7 +15,7 @@ type DRActions struct {
 	Ctx *util.TestContext
 }
 
-const OCM_SCHEDULING_DISABLE = "cluster.open-cluster-management.io/experimental-scheduling-disable"
+const OcmSchedulingDisable = "cluster.open-cluster-management.io/experimental-scheduling-disable"
 
 func (r DRActions) EnableProtection(w workloads.Workload, d deployers.Deployer) error {
 	// If AppSet/Subscription, find Placement
@@ -30,7 +30,6 @@ func (r DRActions) EnableProtection(w workloads.Workload, d deployers.Deployer) 
 	_, isSub := d.(*deployers.Subscription)
 	_, isAppSet := d.(*deployers.ApplicationSet)
 	if isSub || isAppSet {
-
 		name := d.GetName()
 		namespace := d.GetNameSpace()
 		drPolicyName := r.Ctx.Config.DRPolicy
@@ -51,6 +50,7 @@ func (r DRActions) EnableProtection(w workloads.Workload, d deployers.Deployer) 
 		}
 
 		r.Ctx.Log.Info("get placementdecision " + placementDecisionName)
+
 		placementDecision, err := getPlacementDecision(client, namespace, placementDecisionName)
 		if err != nil {
 			return err
@@ -67,9 +67,10 @@ func (r DRActions) EnableProtection(w workloads.Workload, d deployers.Deployer) 
 			placement.Annotations = make(map[string]string)
 		}
 
-		placement.Annotations[OCM_SCHEDULING_DISABLE] = "true"
+		placement.Annotations[OcmSchedulingDisable] = "true"
 
 		r.Ctx.Log.Info("update placement " + placementName + " annotation")
+
 		err = updatePlacement(client, placement)
 		if err != nil {
 			return err
@@ -110,10 +111,10 @@ func (r DRActions) EnableProtection(w workloads.Workload, d deployers.Deployer) 
 		if err != nil {
 			return err
 		}
-
 	} else {
 		return fmt.Errorf("deployer not known")
 	}
+
 	return nil
 }
 
@@ -125,7 +126,6 @@ func (r DRActions) DisableProtection(w workloads.Workload, d deployers.Deployer)
 
 	_, ok := d.(*deployers.Subscription)
 	if ok {
-
 		name := d.GetName()
 		namespace := d.GetNameSpace()
 		placementName := util.DefaultPlacement
@@ -133,28 +133,31 @@ func (r DRActions) DisableProtection(w workloads.Workload, d deployers.Deployer)
 		client := r.Ctx.HubCtrlClient()
 
 		r.Ctx.Log.Info("delete drpc " + drpcName)
+
 		err := deleteDRPC(client, namespace, drpcName)
 		if err != nil {
 			return err
 		}
 
 		r.Ctx.Log.Info("get placement " + placementName)
+
 		placement, err := getPlacement(client, namespace, placementName)
 		if err != nil {
 			return err
 		}
 
-		delete(placement.Annotations, OCM_SCHEDULING_DISABLE)
+		delete(placement.Annotations, OcmSchedulingDisable)
 
 		r.Ctx.Log.Info("update placement " + placementName + " annotation")
+
 		err = updatePlacement(client, placement)
 		if err != nil {
 			return err
 		}
-
 	} else {
 		return fmt.Errorf("deployer not known")
 	}
+
 	return nil
 }
 
@@ -168,7 +171,7 @@ func (r DRActions) Failover(w workloads.Workload, d deployers.Deployer) error {
 
 	name := d.GetName()
 	namespace := d.GetNameSpace()
-	//placementName := w.GetPlacementName()
+	// placementName := w.GetPlacementName()
 	drPolicyName := r.Ctx.Config.DRPolicy
 	drpcName := name + "-drpc"
 	client := r.Ctx.HubCtrlClient()
@@ -188,12 +191,14 @@ func (r DRActions) Failover(w workloads.Workload, d deployers.Deployer) error {
 	}
 
 	r.Ctx.Log.Info("get drpc " + drpcName)
+
 	drpc, err := getDRPC(client, namespace, drpcName)
 	if err != nil {
 		return err
 	}
 
 	r.Ctx.Log.Info("get drpolicy " + drPolicyName)
+
 	drpolicy, err := getDRPolicy(client, drPolicyName)
 	if err != nil {
 		return err
@@ -209,10 +214,12 @@ func (r DRActions) Failover(w workloads.Workload, d deployers.Deployer) error {
 	}
 
 	r.Ctx.Log.Info("preferredCluster: " + preferredCluster + " -> failoverCluster: " + failoverCluster)
+
 	drpc.Spec.Action = "Failover"
 	drpc.Spec.FailoverCluster = failoverCluster
 
 	r.Ctx.Log.Info("update drpc " + drpcName)
+
 	err = updateDRPC(client, drpc)
 	if err != nil {
 		return err
@@ -242,7 +249,7 @@ func (r DRActions) Relocate(w workloads.Workload, d deployers.Deployer) error {
 
 	name := d.GetName()
 	namespace := d.GetNameSpace()
-	//placementName := w.GetPlacementName()
+	// placementName := w.GetPlacementName()
 	drpcName := name + "-drpc"
 	client := r.Ctx.HubCtrlClient()
 
@@ -261,6 +268,7 @@ func (r DRActions) Relocate(w workloads.Workload, d deployers.Deployer) error {
 	}
 
 	r.Ctx.Log.Info("get drpc " + drpcName)
+
 	drpc, err := getDRPC(client, namespace, drpcName)
 	if err != nil {
 		return err
@@ -269,6 +277,7 @@ func (r DRActions) Relocate(w workloads.Workload, d deployers.Deployer) error {
 	drpc.Spec.Action = "Relocate"
 
 	r.Ctx.Log.Info("update drpc " + drpcName)
+
 	err = updateDRPC(client, drpc)
 	if err != nil {
 		return err

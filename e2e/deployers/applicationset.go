@@ -26,7 +26,6 @@ func (a *ApplicationSet) Init() {
 	a.McsbName = "default"
 	a.ClusterDecisionConfigMapName = a.Name + "-configmap"
 	a.ApplicationDestinationNamespace = a.Name
-
 }
 
 func (a ApplicationSet) Deploy(w workloads.Workload) error {
@@ -93,7 +92,17 @@ func (a ApplicationSet) Undeploy(w workloads.Workload) error {
 	}
 
 	// don't use, this function is problematic
-	// err := a.deleteArgoCDClusters()
+	//
+	// 2024-04-15T13:07:21.319+0800    ERROR   util/cmd.go:22  ====== cmd start ======
+	// cmd error: /usr/local/bin/argocd cluster rm rdr-hub  -y
+	// time="2024-04-15T13:07:21+08:00" level=fatal msg=EOF
+
+	// ====== cmd end ======   {"error": "exit status 20"}
+	//
+	// err = a.deleteArgoCDClusters()
+	// if err != nil {
+	// 	return err
+	// }
 
 	return nil
 }
@@ -110,7 +119,7 @@ func (a ApplicationSet) Health(w workloads.Workload) error {
 	util.LogEnter(&a.Ctx.Log)
 	defer util.LogExit(&a.Ctx.Log)
 
-	w.GetResources()
+	// w.GetResources()
 	// Check health using reflection to known types of the workload on the targetCluster
 	// Again if using reflection can be a common function outside of deployer as such
 	return nil
