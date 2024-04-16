@@ -10,6 +10,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 )
 
+var (
+	ctx util.TestContext
+)
+
 func configureLogOptions() *zap.Options {
 	opts := zap.Options{
 		Development: true,
@@ -22,11 +26,11 @@ func configureLogOptions() *zap.Options {
 	return &opts
 }
 
-func main() {
+func setup() {
 	logOpts := configureLogOptions()
 	log := zap.New(zap.UseFlagOptions(logOpts))
 
-	ctx := new(util.TestContext)
+	// ctx := new(util.TestContext)
 	ctx.Log = log
 
 	util.LogEnter(&ctx.Log)
@@ -43,23 +47,27 @@ func main() {
 		panic(config)
 	}
 
-	err = configContext(ctx, config)
+	err = configContext(&ctx, config)
 	if err != nil {
 		ctx.Log.Error(err, "failed to config TestContext")
 		panic(err)
 	}
+}
 
-	err = RunSuite(&suites.PrecheckSuite{}, ctx)
+func main() {
+	setup()
+
+	err := RunSuite(&suites.PrecheckSuite{}, &ctx)
 	if err != nil {
 		panic(err)
 	}
 
-	err = RunSuite(&suites.BasicSuite{}, ctx)
+	err = RunSuite(&suites.BasicSuite{}, &ctx)
 	if err != nil {
 		panic(err)
 	}
 
-	err = RunSuite(&suites.AppSetSuite{}, ctx)
+	err = RunSuite(&suites.AppSetSuite{}, &ctx)
 	if err != nil {
 		panic(err)
 	}
