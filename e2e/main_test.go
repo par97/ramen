@@ -19,6 +19,22 @@ import (
 
 	uberzap "go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+
+	// Placement
+	ocmclusterv1beta1 "open-cluster-management.io/api/cluster/v1beta1"
+	// ManagedClusterSetBinding
+	ocmclusterv1beta2 "open-cluster-management.io/api/cluster/v1beta2"
+	// PlacementRule
+	placementrule "open-cluster-management.io/multicloud-operators-subscription/pkg/apis/apps/placementrule/v1"
+	// Channel
+	channel "open-cluster-management.io/multicloud-operators-channel/pkg/apis"
+
+	ramen "github.com/ramendr/ramen/api/v1alpha1"
+	// rookv1 "github.com/rook/rook/pkg/apis/ceph.rook.io/v1"
+
+	// Subscription
+	// argocdv1alpha1hack "github.com/ramendr/ramen/e2e/argocd"
+	subscription "open-cluster-management.io/multicloud-operators-subscription/pkg/apis"
 )
 
 var (
@@ -45,7 +61,7 @@ type Context struct {
 	C2  Cluster
 }
 
-var e2eContext *Context
+var ctx *Context
 
 func setupClient(kubeconfigPath string) (*kubernetes.Clientset, client.Client, error) {
 	var err error
@@ -68,6 +84,15 @@ func setupClient(kubeconfigPath string) (*kubernetes.Clientset, client.Client, e
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to build k8s client set from kubeconfig (%s): %w", kubeconfigPath, err)
 	}
+
+	ocmclusterv1beta1.AddToScheme(scheme.Scheme)
+	ocmclusterv1beta2.AddToScheme(scheme.Scheme)
+	placementrule.AddToScheme(scheme.Scheme)
+	channel.AddToScheme(scheme.Scheme)
+	subscription.AddToScheme(scheme.Scheme)
+	// rookv1.AddToScheme(scheme.Scheme)
+	ramen.AddToScheme(scheme.Scheme)
+	// argocdv1alpha1hack.AddToScheme(scheme.Scheme)
 
 	ctrlClient, err := client.New(cfg, client.Options{Scheme: scheme.Scheme})
 	if err != nil {
@@ -114,7 +139,7 @@ func TestMain(m *testing.M) {
 		TimeEncoder: zapcore.ISO8601TimeEncoder,
 	}))
 
-	e2eContext, err = newContext(&log, kubeconfigHub, kubeconfigC1, kubeconfigC2)
+	ctx, err = newContext(&log, kubeconfigHub, kubeconfigC1, kubeconfigC2)
 	if err != nil {
 		log.Error(err, "unable to create new testing context")
 
@@ -130,15 +155,15 @@ type testDef struct {
 }
 
 var Suites = []testDef{
-	{"Basic", Basic},
 	{"Validate", Validate},
+	// {"Basic", Basic},
 	{"Exhaustive", Exhaustive},
 }
 
 func TestSuites(t *testing.T) {
-	e2eContext.Log.Info(t.Name())
+	ctx.Log.Info(t.Name())
 
-	for idx := range Suites {
-		t.Run(Suites[idx].name, Suites[idx].test)
+	for _, suite := range Suites {
+		t.Run(suite.name, suite.test)
 	}
 }

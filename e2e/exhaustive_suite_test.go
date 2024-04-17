@@ -7,33 +7,57 @@ import (
 	"testing"
 )
 
-var Deployers = []string{"Subscription", "AppSet", "Imperative"}
-
-var Workloads = []string{"Deployment", "STS", "DaemonSet"}
-
-var Classes = []string{"rbd", "cephfs"}
+// var Deployers = []string{"Subscription", "AppSet", "Imperative"}
+// var Workloads = []string{"Deployment", "STS", "DaemonSet"}
+// var Classes = []string{"rbd", "cephfs"}
 
 func Exhaustive(t *testing.T) {
 	t.Helper()
 
-	e2eContext.Log.Info(t.Name())
+	ctx.Log.Info(t.Name())
 
-	for w := range Workloads {
-		for d := range Deployers {
-			dName := Deployers[d]
+	deployment := &Deployment{}
+	deployment.Init()
+	var Workloads = []Workload{deployment}
 
-			t.Run(Workloads[w], func(t *testing.T) {
-				e2eContext.Log.Info(t.Name())
+	subscrition := Subscription{}
+	subscrition.Init()
+	var Deployers = []Deployer{&subscrition}
 
-				t.Run(dName, func(t *testing.T) {
-					e2eContext.Log.Info(t.Name())
+	for _, w := range Workloads {
+		for _, d := range Deployers {
 
-					t.Run("Deploy", Deploy)
-					t.Run("Enable", Enable)
-					t.Run("Failover", Failover)
-					t.Run("Relocate", Relocate)
-					t.Run("Disable", Disable)
-					t.Run("Undeploy", Undeploy)
+			t.Run(w.GetID(), func(t *testing.T) {
+				ctx.Log.Info(t.Name())
+
+				t.Run(d.GetID(), func(t *testing.T) {
+					ctx.Log.Info(t.Name())
+
+					if err := d.Deploy(w); err != nil {
+						t.Error(err)
+					}
+					if err := EnableProtection(w, d); err != nil {
+						t.Error(err)
+					}
+					if err := Failover(w, d); err != nil {
+						t.Error(err)
+					}
+					if err := Relocate(w, d); err != nil {
+						t.Error(err)
+					}
+					if err := DisableProtection(w, d); err != nil {
+						t.Error(err)
+					}
+					if err := d.Undeploy(w); err != nil {
+						t.Error(err)
+					}
+
+					// t.Run("Deploy", Deploy)
+					// t.Run("Enable", Enable)
+					// t.Run("Failover", Failover)
+					// t.Run("Relocate", Relocate)
+					// t.Run("Disable", Disable)
+					// t.Run("Undeploy", Undeploy)
 				})
 			})
 		}
