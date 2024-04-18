@@ -32,7 +32,7 @@ func createApplicationSet(a ApplicationSet, w Workload) error {
 						ConfigMapRef: name,
 						LabelSelector: metav1.LabelSelector{
 							MatchLabels: map[string]string{
-								"cluster.open-cluster-management.io/placement": a.PlacementName,
+								"cluster.open-cluster-management.io/placement": name,
 							},
 						},
 						RequeueAfterSeconds: &requeueSeconds,

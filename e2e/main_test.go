@@ -33,7 +33,7 @@ import (
 	// rookv1 "github.com/rook/rook/pkg/apis/ceph.rook.io/v1"
 
 	// Subscription
-	// argocdv1alpha1hack "github.com/ramendr/ramen/e2e/argocd"
+	argocdv1alpha1hack "github.com/ramendr/ramen/e2e/argocd"
 	subscription "open-cluster-management.io/multicloud-operators-subscription/pkg/apis"
 )
 
@@ -92,7 +92,7 @@ func setupClient(kubeconfigPath string) (*kubernetes.Clientset, client.Client, e
 	subscription.AddToScheme(scheme.Scheme)
 	// rookv1.AddToScheme(scheme.Scheme)
 	ramen.AddToScheme(scheme.Scheme)
-	// argocdv1alpha1hack.AddToScheme(scheme.Scheme)
+	argocdv1alpha1hack.AddToScheme(scheme.Scheme)
 
 	ctrlClient, err := client.New(cfg, client.Options{Scheme: scheme.Scheme})
 	if err != nil {
