@@ -11,6 +11,9 @@ import (
 // var Workloads = []string{"Deployment", "STS", "DaemonSet"}
 // var Classes = []string{"rbd", "cephfs"}
 
+var currentDeployer Deployer
+var currentWorkload Workload
+
 func Exhaustive(t *testing.T) {
 	t.Helper()
 
@@ -27,37 +30,33 @@ func Exhaustive(t *testing.T) {
 	for _, w := range Workloads {
 		for _, d := range Deployers {
 
+			currentWorkload = w
+			currentDeployer = d
+
 			t.Run(w.GetID(), func(t *testing.T) {
 				ctx.Log.Info(t.Name())
 
 				t.Run(d.GetID(), func(t *testing.T) {
 					ctx.Log.Info(t.Name())
 
-					if err := d.Deploy(w); err != nil {
-						t.Error(err)
+					if !t.Run("Deploy", DeployAction) {
+						t.Fatal("Deploy failed")
 					}
-					if err := EnableProtection(w, d); err != nil {
-						t.Error(err)
+					if !t.Run("Enable", EnableAction) {
+						t.Fatal("Enable failed")
 					}
-					if err := Failover(w, d); err != nil {
-						t.Error(err)
+					if !t.Run("Failover", FailoverAction) {
+						t.Fatal("Failover failed")
 					}
-					if err := Relocate(w, d); err != nil {
-						t.Error(err)
+					if !t.Run("Relocate", RelocateAction) {
+						t.Fatal("Relocate failed")
 					}
-					if err := DisableProtection(w, d); err != nil {
-						t.Error(err)
+					if !t.Run("Disable", DisableAction) {
+						t.Fatal("Disable failed")
 					}
-					if err := d.Undeploy(w); err != nil {
-						t.Error(err)
+					if !t.Run("Undeploy", UndeployAction) {
+						t.Fatal("Undeploy failed")
 					}
-
-					// t.Run("Deploy", Deploy)
-					// t.Run("Enable", Enable)
-					// t.Run("Failover", Failover)
-					// t.Run("Relocate", Relocate)
-					// t.Run("Disable", Disable)
-					// t.Run("Undeploy", Undeploy)
 				})
 			})
 		}

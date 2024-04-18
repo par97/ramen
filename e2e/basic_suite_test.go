@@ -12,34 +12,52 @@ func Basic(t *testing.T) {
 
 	ctx.Log.Info(t.Name())
 
-	// t.Run("Deploy", Deploy)
-	// t.Run("Enable", Enable)
-	// t.Run("Failover", Failover)
-	// t.Run("Relocate", Relocate)
-	// t.Run("Disable", Disable)
-	// t.Run("Undeploy", Undeploy)
+	// t.Run("Deploy", DeployAction)
+	// t.Run("Enable", EnableAction)
+	// t.Run("Failover", FailoverAction)
+	// t.Run("Relocate", RelocateAction)
+	// t.Run("Disable", DisableAction)
+	// t.Run("Undeploy", UndeployAction)
 }
 
-// func Deploy(t *testing.T) {
-// 	ctx.Log.Info(t.Name())
-// }
+func DeployAction(t *testing.T) {
+	ctx.Log.Info(t.Name())
+	if err := currentDeployer.Deploy(currentWorkload); err != nil {
+		t.Error(err)
+	}
+}
 
-// func Enable(t *testing.T) {
-// 	ctx.Log.Info(t.Name())
-// }
+func EnableAction(t *testing.T) {
+	ctx.Log.Info(t.Name())
+	if err := EnableProtection(currentWorkload, currentDeployer); err != nil {
+		t.Error(err)
+	}
+}
 
-// func Failover(t *testing.T) {
-// 	ctx.Log.Info(t.Name())
-// }
+func FailoverAction(t *testing.T) {
+	ctx.Log.Info(t.Name())
+	if err := Failover(currentWorkload, currentDeployer); err != nil {
+		t.Error(err)
+	}
+}
 
-// func Relocate(t *testing.T) {
-// 	ctx.Log.Info(t.Name())
-// }
+func RelocateAction(t *testing.T) {
+	ctx.Log.Info(t.Name())
+	if err := Relocate(currentWorkload, currentDeployer); err != nil {
+		t.Error(err)
+	}
+}
 
-// func Disable(t *testing.T) {
-// 	ctx.Log.Info(t.Name())
-// }
+func DisableAction(t *testing.T) {
+	ctx.Log.Info(t.Name())
+	if err := DisableProtection(currentWorkload, currentDeployer); err != nil {
+		t.Error(err)
+	}
+}
 
-// func Undeploy(t *testing.T) {
-// 	ctx.Log.Info(t.Name())
-// }
+func UndeployAction(t *testing.T) {
+	ctx.Log.Info(t.Name())
+	if err := currentDeployer.Undeploy(currentWorkload); err != nil {
+		t.Error(err)
+	}
+}
