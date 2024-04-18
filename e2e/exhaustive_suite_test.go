@@ -1,36 +1,41 @@
 // SPDX-FileCopyrightText: The RamenDR authors
 // SPDX-License-Identifier: Apache-2.0
 
-package e2e_test
+package e2e
 
 import (
 	"testing"
+
+	"github.com/ramendr/ramen/e2e/deployers"
+	"github.com/ramendr/ramen/e2e/testcontext"
+	"github.com/ramendr/ramen/e2e/util"
+	"github.com/ramendr/ramen/e2e/workloads"
 )
 
 // var Deployers = []string{"Subscription", "AppSet", "Imperative"}
 // var Workloads = []string{"Deployment", "STS", "DaemonSet"}
 // var Classes = []string{"rbd", "cephfs"}
 
-var currentDeployer Deployer
-var currentWorkload Workload
+var currentDeployer deployers.Deployer
+var currentWorkload workloads.Workload
 
 func Exhaustive(t *testing.T) {
 	t.Helper()
 
-	ctx.Log.Info(t.Name())
+	util.Ctx.Log.Info(t.Name())
 
-	deployment := &Deployment{}
+	deployment := &workloads.Deployment{}
 	deployment.Init()
 
-	var Workloads = []Workload{deployment}
+	var Workloads = []workloads.Workload{deployment}
 
-	subscrition := Subscription{}
+	subscrition := deployers.Subscription{}
 	subscrition.Init()
 
-	applicationSet := ApplicationSet{}
+	applicationSet := deployers.ApplicationSet{}
 	applicationSet.Init()
 
-	var Deployers = []Deployer{&subscrition, &applicationSet}
+	var Deployers = []deployers.Deployer{&subscrition, &applicationSet}
 
 	for _, w := range Workloads {
 		for _, d := range Deployers {
@@ -39,12 +44,12 @@ func Exhaustive(t *testing.T) {
 			currentDeployer = d
 
 			t.Run(w.GetID(), func(t *testing.T) {
-				ctx.Log.Info(t.Name())
+				util.Ctx.Log.Info(t.Name())
 
 				t.Run(d.GetID(), func(t *testing.T) {
-					ctx.Log.Info(t.Name())
+					util.Ctx.Log.Info(t.Name())
 
-					addTestContext(t.Name(), w, d)
+					testcontext.AddTestContext(t.Name(), w, d)
 
 					if !t.Run("Deploy", DeployAction) {
 						t.Fatal("Deploy failed")
