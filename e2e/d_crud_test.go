@@ -2,146 +2,149 @@ package e2e_test
 
 import (
 	"context"
+	"fmt"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	argocdv1alpha1hack "github.com/ramendr/ramen/e2e/argocd"
 	ocmclusterv1beta1 "open-cluster-management.io/api/cluster/v1beta1"
 	ocmclusterv1beta2 "open-cluster-management.io/api/cluster/v1beta2"
 	placementrulev1 "open-cluster-management.io/multicloud-operators-subscription/pkg/apis/apps/placementrule/v1"
 	subscriptionv1 "open-cluster-management.io/multicloud-operators-subscription/pkg/apis/apps/v1"
 )
 
-// func (a *ApplicationSet) createApplicationSet(w Workload) error {
-// 	a.Ctx.Log.Info("enter createApplicationSet")
-// 	var requeueSeconds int64 = 180
+func createApplicationSet(a ApplicationSet, w Workload) error {
+	ctx.Log.Info("enter createApplicationSet")
+	var requeueSeconds int64 = 180
 
-// 	appset := &argocdv1alpha1hack.ApplicationSet{
-// 		ObjectMeta: metav1.ObjectMeta{
-// 			Name:      a.Name,
-// 			Namespace: a.Namespace,
-// 		},
-// 		Spec: argocdv1alpha1hack.ApplicationSetSpec{
-// 			Generators: []argocdv1alpha1hack.ApplicationSetGenerator{
-// 				{
-// 					ClusterDecisionResource: &argocdv1alpha1hack.DuckTypeGenerator{
-// 						ConfigMapRef: a.ClusterDecisionConfigMapName,
-// 						LabelSelector: metav1.LabelSelector{
-// 							MatchLabels: map[string]string{
-// 								"cluster.open-cluster-management.io/placement": a.PlacementName,
-// 							},
-// 						},
-// 						RequeueAfterSeconds: &requeueSeconds,
-// 					},
-// 				},
-// 			},
-// 			Template: argocdv1alpha1hack.ApplicationSetTemplate{
-// 				ApplicationSetTemplateMeta: argocdv1alpha1hack.ApplicationSetTemplateMeta{
-// 					Name: "rbd-{{name}}",
-// 				},
-// 				Spec: argocdv1alpha1hack.ApplicationSpec{
-// 					Source: &argocdv1alpha1hack.ApplicationSource{
-// 						RepoURL:        w.GetRepoURL(),
-// 						Path:           w.GetPath(),
-// 						TargetRevision: w.GetRevision(),
-// 					},
-// 					Destination: argocdv1alpha1hack.ApplicationDestination{
-// 						Server:    "{{server}}",
-// 						Namespace: a.ApplicationDestinationNamespace,
-// 					},
-// 					Project: "default",
-// 					SyncPolicy: &argocdv1alpha1hack.SyncPolicy{
-// 						Automated: &argocdv1alpha1hack.SyncPolicyAutomated{
-// 							Prune:    true,
-// 							SelfHeal: true,
-// 						},
-// 						SyncOptions: []string{
-// 							"CreateNamespace=true",
-// 							"PruneLast=true",
-// 						},
-// 					},
-// 				},
-// 			},
-// 		},
-// 	}
+	name := a.NamePrefix + w.GetAppName()
+	appset := &argocdv1alpha1hack.ApplicationSet{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: a.Namespace,
+		},
+		Spec: argocdv1alpha1hack.ApplicationSetSpec{
+			Generators: []argocdv1alpha1hack.ApplicationSetGenerator{
+				{
+					ClusterDecisionResource: &argocdv1alpha1hack.DuckTypeGenerator{
+						ConfigMapRef: name,
+						LabelSelector: metav1.LabelSelector{
+							MatchLabels: map[string]string{
+								"cluster.open-cluster-management.io/placement": a.PlacementName,
+							},
+						},
+						RequeueAfterSeconds: &requeueSeconds,
+					},
+				},
+			},
+			Template: argocdv1alpha1hack.ApplicationSetTemplate{
+				ApplicationSetTemplateMeta: argocdv1alpha1hack.ApplicationSetTemplateMeta{
+					Name: "rbd-{{name}}",
+				},
+				Spec: argocdv1alpha1hack.ApplicationSpec{
+					Source: &argocdv1alpha1hack.ApplicationSource{
+						RepoURL:        w.GetRepoURL(),
+						Path:           w.GetPath(),
+						TargetRevision: w.GetRevision(),
+					},
+					Destination: argocdv1alpha1hack.ApplicationDestination{
+						Server:    "{{server}}",
+						Namespace: name,
+					},
+					Project: "default",
+					SyncPolicy: &argocdv1alpha1hack.SyncPolicy{
+						Automated: &argocdv1alpha1hack.SyncPolicyAutomated{
+							Prune:    true,
+							SelfHeal: true,
+						},
+						SyncOptions: []string{
+							"CreateNamespace=true",
+							"PruneLast=true",
+						},
+					},
+				},
+			},
+		},
+	}
 
-// 	err := a.Ctx.Hub.CtrlClient.Create(context.Background(), appset)
-// 	if err != nil {
-// 		if !errors.IsAlreadyExists(err) {
-//
-// 			return err
-// 		}
-// 		a.Ctx.Log.Info("applicationset " + appset.Name + " already Exists")
-// 	}
+	err := ctx.Hub.CtrlClient.Create(context.Background(), appset)
+	if err != nil {
+		if !errors.IsAlreadyExists(err) {
 
-// 	return nil
-// }
+			return err
+		}
+		ctx.Log.Info("applicationset " + appset.Name + " already Exists")
+	}
 
-// func (a *ApplicationSet) deleteApplicationSet() error {
-// 	a.Ctx.Log.Info("enter deleteApplicationSet")
+	return nil
+}
 
-// 	appset := &argocdv1alpha1hack.ApplicationSet{
-// 		ObjectMeta: metav1.ObjectMeta{
-// 			Name:      a.Name,
-// 			Namespace: a.Namespace,
-// 		},
-// 	}
+func deleteApplicationSet(a ApplicationSet, w Workload) error {
+	ctx.Log.Info("enter deleteApplicationSet")
+	name := a.NamePrefix + w.GetAppName()
+	appset := &argocdv1alpha1hack.ApplicationSet{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: a.Namespace,
+		},
+	}
 
-// 	err := a.Ctx.Hub.CtrlClient.Delete(context.Background(), appset)
-// 	if err != nil {
-// 		if !errors.IsNotFound(err) {
-//
-// 			return err
-// 		}
-// 		a.Ctx.Log.Info("applicationset " + appset.Name + " not found")
-// 	}
-// 	return nil
-// }
+	err := ctx.Hub.CtrlClient.Delete(context.Background(), appset)
+	if err != nil {
+		if !errors.IsNotFound(err) {
 
-// func createPlacementDecisionConfigMap( cmName string, cmNamespace string) error {
+			return err
+		}
+		ctx.Log.Info("applicationset " + appset.Name + " not found")
+	}
+	return nil
+}
 
-// 	object := metav1.ObjectMeta{Name: cmName, Namespace: cmNamespace}
+func createPlacementDecisionConfigMap(cmName string, cmNamespace string) error {
 
-// 	data := map[string]string{
-// 		"apiVersion":    "cluster.open-cluster-management.io/v1beta1",
-// 		"kind":          "placementdecisions",
-// 		"statusListKey": "decisions",
-// 		"matchKey":      "clusterName",
-// 	}
+	object := metav1.ObjectMeta{Name: cmName, Namespace: cmNamespace}
 
-// 	configMap := &corev1.ConfigMap{ObjectMeta: object, Data: data}
+	data := map[string]string{
+		"apiVersion":    "cluster.open-cluster-management.io/v1beta1",
+		"kind":          "placementdecisions",
+		"statusListKey": "decisions",
+		"matchKey":      "clusterName",
+	}
 
-// 	err := ctx.Hub.CtrlClient.Create(context.Background(), configMap)
-// 	if err != nil {
-// 		if !errors.IsAlreadyExists(err) {
-//
-// 			return fmt.Errorf("could not create configMap " + cmName)
-// 		}
-// 		ctx.Log.Info("configMap " + cmName + " already Exists")
-// 	}
-// 	return nil
-// }
+	configMap := &corev1.ConfigMap{ObjectMeta: object, Data: data}
 
-// func deleteConfigMap( cmName string, cmNamespace string) error {
+	err := ctx.Hub.CtrlClient.Create(context.Background(), configMap)
+	if err != nil {
+		if !errors.IsAlreadyExists(err) {
 
-// 	object := metav1.ObjectMeta{Name: cmName, Namespace: cmNamespace}
+			return fmt.Errorf("could not create configMap " + cmName)
+		}
+		ctx.Log.Info("configMap " + cmName + " already Exists")
+	}
+	return nil
+}
 
-// 	configMap := &corev1.ConfigMap{
-// 		ObjectMeta: object,
-// 	}
+func deleteConfigMap(cmName string, cmNamespace string) error {
 
-// 	err := ctx.Hub.CtrlClient.Delete(context.Background(), configMap)
-// 	if err != nil {
-// 		if !errors.IsNotFound(err) {
-//
-// 			return fmt.Errorf("could not delete configMap " + cmName)
-// 		}
-// 		ctx.Log.Info("configMap " + cmName + " not found")
-// 	}
+	object := metav1.ObjectMeta{Name: cmName, Namespace: cmNamespace}
 
-// 	return nil
-// }
+	configMap := &corev1.ConfigMap{
+		ObjectMeta: object,
+	}
+
+	err := ctx.Hub.CtrlClient.Delete(context.Background(), configMap)
+	if err != nil {
+		if !errors.IsNotFound(err) {
+
+			return fmt.Errorf("could not delete configMap " + cmName)
+		}
+		ctx.Log.Info("configMap " + cmName + " not found")
+	}
+
+	return nil
+}
 
 func createNamespace(namespace string) error {
 

@@ -21,11 +21,16 @@ func Exhaustive(t *testing.T) {
 
 	deployment := &Deployment{}
 	deployment.Init()
+
 	var Workloads = []Workload{deployment}
 
 	subscrition := Subscription{}
 	subscrition.Init()
-	var Deployers = []Deployer{&subscrition}
+
+	applicationSet := ApplicationSet{}
+	applicationSet.Init()
+
+	var Deployers = []Deployer{&subscrition, &applicationSet}
 
 	for _, w := range Workloads {
 		for _, d := range Deployers {
