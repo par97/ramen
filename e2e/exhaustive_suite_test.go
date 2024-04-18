@@ -39,6 +39,8 @@ func Exhaustive(t *testing.T) {
 				t.Run(d.GetID(), func(t *testing.T) {
 					ctx.Log.Info(t.Name())
 
+					addTestContext(t.Name(), w, d)
+
 					if !t.Run("Deploy", DeployAction) {
 						t.Fatal("Deploy failed")
 					}

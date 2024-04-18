@@ -2,6 +2,7 @@ package e2e_test
 
 import (
 	"fmt"
+	"testing"
 	"time"
 
 	ramen "github.com/ramendr/ramen/api/v1alpha1"
@@ -276,4 +277,70 @@ func Relocate(w Workload, d Deployer) error {
 	}
 
 	return nil
+}
+
+func DeployAction(t *testing.T) {
+	ctx.Log.Info(t.Name())
+	testCtx, err := getTestContext(t.Name())
+	if err != nil {
+		t.Error(err)
+	}
+	if err := testCtx.d.Deploy(testCtx.w); err != nil {
+		t.Error(err)
+	}
+}
+
+func EnableAction(t *testing.T) {
+	ctx.Log.Info(t.Name())
+	testCtx, err := getTestContext(t.Name())
+	if err != nil {
+		t.Error(err)
+	}
+	if err := EnableProtection(testCtx.w, testCtx.d); err != nil {
+		t.Error(err)
+	}
+}
+
+func FailoverAction(t *testing.T) {
+	ctx.Log.Info(t.Name())
+	testCtx, err := getTestContext(t.Name())
+	if err != nil {
+		t.Error(err)
+	}
+	if err := Failover(testCtx.w, testCtx.d); err != nil {
+		t.Error(err)
+	}
+}
+
+func RelocateAction(t *testing.T) {
+	ctx.Log.Info(t.Name())
+	testCtx, err := getTestContext(t.Name())
+	if err != nil {
+		t.Error(err)
+	}
+	if err := Relocate(testCtx.w, testCtx.d); err != nil {
+		t.Error(err)
+	}
+}
+
+func DisableAction(t *testing.T) {
+	ctx.Log.Info(t.Name())
+	testCtx, err := getTestContext(t.Name())
+	if err != nil {
+		t.Error(err)
+	}
+	if err := DisableProtection(testCtx.w, testCtx.d); err != nil {
+		t.Error(err)
+	}
+}
+
+func UndeployAction(t *testing.T) {
+	ctx.Log.Info(t.Name())
+	testCtx, err := getTestContext(t.Name())
+	if err != nil {
+		t.Error(err)
+	}
+	if err := testCtx.d.Undeploy(testCtx.w); err != nil {
+		t.Error(err)
+	}
 }
