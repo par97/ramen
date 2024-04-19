@@ -20,6 +20,7 @@ var currentDeployer deployers.Deployer
 var currentWorkload workloads.Workload
 
 func Exhaustive(t *testing.T) {
+	t.Parallel()
 	t.Helper()
 
 	util.Ctx.Log.Info(t.Name())
@@ -38,15 +39,24 @@ func Exhaustive(t *testing.T) {
 	var Deployers = []deployers.Deployer{&subscrition, &applicationSet}
 
 	for _, w := range Workloads {
+		// this is needed to avoid parallel test issue
+		// see https://go.dev/wiki/CommonMistakes
+		w := w
 		for _, d := range Deployers {
+			// this is needed to avoid parallel test issue
+			// see https://go.dev/wiki/CommonMistakes
+			d := d
 
 			currentWorkload = w
 			currentDeployer = d
 
 			t.Run(w.GetID(), func(t *testing.T) {
+				t.Parallel()
 				util.Ctx.Log.Info(t.Name())
 
 				t.Run(d.GetID(), func(t *testing.T) {
+					t.Parallel()
+
 					util.Ctx.Log.Info(t.Name())
 
 					testcontext.AddTestContext(t.Name(), w, d)

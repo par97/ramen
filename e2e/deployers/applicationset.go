@@ -21,7 +21,7 @@ func (a *ApplicationSet) Init() {
 	a.NamePrefix = "appset-"
 	// a.Name = "appset-" + w.GetAppName()
 	// appset need be created in argocd ns by default
-	a.Namespace = "argocd"
+	a.Namespace = util.ArgocdNamespace
 	// a.PlacementName = a.Name
 	a.McsbName = "default"
 	// a.ClusterDecisionConfigMapName = a.Name

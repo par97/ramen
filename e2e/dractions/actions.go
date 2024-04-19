@@ -31,7 +31,7 @@ func EnableProtection(w workloads.Workload, d deployers.Deployer) error {
 		name := d.GetNamePrefix() + w.GetAppName()
 		namespace := name
 		if isAppSet {
-			namespace = "argocd"
+			namespace = util.ArgocdNamespace
 		}
 		drPolicyName := DefaultDRPolicyName
 		appname := w.GetAppName()
@@ -124,7 +124,7 @@ func DisableProtection(w workloads.Workload, d deployers.Deployer) error {
 		name := d.GetNamePrefix() + w.GetAppName()
 		namespace := name
 		if isAppSet {
-			namespace = "argocd"
+			namespace = util.ArgocdNamespace
 		}
 
 		placementName := name
@@ -170,7 +170,7 @@ func Failover(w workloads.Workload, d deployers.Deployer) error {
 
 	_, isAppSet := d.(*deployers.ApplicationSet)
 	if isAppSet {
-		namespace = "argocd"
+		namespace = util.ArgocdNamespace
 	}
 	//placementName := w.GetPlacementName()
 	drPolicyName := DefaultDRPolicyName
@@ -239,7 +239,7 @@ func Relocate(w workloads.Workload, d deployers.Deployer) error {
 
 	_, isAppSet := d.(*deployers.ApplicationSet)
 	if isAppSet {
-		namespace = "argocd"
+		namespace = util.ArgocdNamespace
 	}
 	//placementName := w.GetPlacementName()
 	drPolicyName := DefaultDRPolicyName
