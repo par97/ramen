@@ -74,14 +74,17 @@ func (s Subscription) Undeploy(w workloads.Workload) error {
 	if err != nil {
 		return err
 	}
+
 	err = deletePlacement(name, namespace)
 	if err != nil {
 		return err
 	}
+
 	err = deleteManagedClusterSetBinding(s.McsbName, namespace)
 	if err != nil {
 		return err
 	}
+
 	err = deleteNamespace(namespace)
 	if err != nil {
 		return err

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: The RamenDR authors
 // SPDX-License-Identifier: Apache-2.0
 
-package e2e
+package e2e_test
 
 import (
 	"flag"
@@ -56,6 +56,7 @@ var Suites = []testDef{
 
 func TestSuites(t *testing.T) {
 	util.Ctx.Log.Info(t.Name())
+
 	for _, suite := range Suites {
 		t.Run(suite.name, suite.test)
 	}

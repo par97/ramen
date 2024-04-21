@@ -45,7 +45,6 @@ func (w Deployment) GetRevision() string {
 
 func (w Deployment) Kustomize() error {
 	// ctx.Log.Info("enter Deployment Kustomize")
-
 	return nil
 }
 

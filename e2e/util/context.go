@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 
 	"github.com/go-logr/logr"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/kubectl/pkg/scheme"
@@ -26,13 +27,12 @@ import (
 	// PlacementRule
 	placementrule "open-cluster-management.io/multicloud-operators-subscription/pkg/apis/apps/placementrule/v1"
 	// Channel
-	channel "open-cluster-management.io/multicloud-operators-channel/pkg/apis"
 
 	ramen "github.com/ramendr/ramen/api/v1alpha1"
 	// rookv1 "github.com/rook/rook/pkg/apis/ceph.rook.io/v1"
 
 	// Subscription
-	argocdv1alpha1hack "github.com/ramendr/ramen/e2e/argocd"
+
 	subscription "open-cluster-management.io/multicloud-operators-subscription/pkg/apis"
 )
 
@@ -56,6 +56,26 @@ type Context struct {
 
 var Ctx *Context
 
+func addToScheme(scheme *runtime.Scheme) error {
+	if err := ocmclusterv1beta1.AddToScheme(scheme); err != nil {
+		return err
+	}
+
+	if err := ocmclusterv1beta2.AddToScheme(scheme); err != nil {
+		return err
+	}
+
+	if err := placementrule.AddToScheme(scheme); err != nil {
+		return err
+	}
+
+	if err := subscription.AddToScheme(scheme); err != nil {
+		return err
+	}
+
+	return ramen.AddToScheme(scheme)
+}
+
 func setupClient(kubeconfigPath string) (*kubernetes.Clientset, client.Client, error) {
 	var err error
 
@@ -78,14 +98,9 @@ func setupClient(kubeconfigPath string) (*kubernetes.Clientset, client.Client, e
 		return nil, nil, fmt.Errorf("failed to build k8s client set from kubeconfig (%s): %w", kubeconfigPath, err)
 	}
 
-	ocmclusterv1beta1.AddToScheme(scheme.Scheme)
-	ocmclusterv1beta2.AddToScheme(scheme.Scheme)
-	placementrule.AddToScheme(scheme.Scheme)
-	channel.AddToScheme(scheme.Scheme)
-	subscription.AddToScheme(scheme.Scheme)
-	// rookv1.AddToScheme(scheme.Scheme)
-	ramen.AddToScheme(scheme.Scheme)
-	argocdv1alpha1hack.AddToScheme(scheme.Scheme)
+	if err := addToScheme(scheme.Scheme); err != nil {
+		return nil, nil, err
+	}
 
 	ctrlClient, err := client.New(cfg, client.Options{Scheme: scheme.Scheme})
 	if err != nil {

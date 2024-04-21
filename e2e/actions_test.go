@@ -1,4 +1,4 @@
-package e2e
+package e2e_test
 
 import (
 	"testing"
@@ -14,6 +14,7 @@ func DeployAction(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+
 	if err := testCtx.Deployer.Deploy(testCtx.Workload); err != nil {
 		t.Error(err)
 	}
@@ -25,6 +26,7 @@ func EnableAction(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+
 	if err := dractions.EnableProtection(testCtx.Workload, testCtx.Deployer); err != nil {
 		t.Error(err)
 	}
@@ -36,6 +38,7 @@ func FailoverAction(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+
 	if err := dractions.Failover(testCtx.Workload, testCtx.Deployer); err != nil {
 		t.Error(err)
 	}
@@ -47,6 +50,7 @@ func RelocateAction(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+
 	if err := dractions.Relocate(testCtx.Workload, testCtx.Deployer); err != nil {
 		t.Error(err)
 	}
@@ -54,10 +58,12 @@ func RelocateAction(t *testing.T) {
 
 func DisableAction(t *testing.T) {
 	util.Ctx.Log.Info(t.Name())
+
 	testCtx, err := testcontext.GetTestContext(t.Name())
 	if err != nil {
 		t.Error(err)
 	}
+
 	if err := dractions.DisableProtection(testCtx.Workload, testCtx.Deployer); err != nil {
 		t.Error(err)
 	}
@@ -65,10 +71,12 @@ func DisableAction(t *testing.T) {
 
 func UndeployAction(t *testing.T) {
 	util.Ctx.Log.Info(t.Name())
+
 	testCtx, err := testcontext.GetTestContext(t.Name())
 	if err != nil {
 		t.Error(err)
 	}
+
 	if err := testCtx.Deployer.Undeploy(testCtx.Workload); err != nil {
 		t.Error(err)
 	}

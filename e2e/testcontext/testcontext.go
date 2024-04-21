@@ -41,5 +41,6 @@ func GetTestContext(name string) (TestContext, error) {
 			return TestContext{}, fmt.Errorf("can not find testContext with name: %v", name)
 		}
 	}
+
 	return testCtx, nil
 }
