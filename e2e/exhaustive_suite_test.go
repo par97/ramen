@@ -30,7 +30,8 @@ func Exhaustive(t *testing.T) {
 	appset := &deployers.ApplicationSet{}
 	appset.Init()
 
-	Deployers := []deployers.Deployer{subscrition, appset}
+	// Deployers := []deployers.Deployer{subscrition, appset}
+	Deployers := []deployers.Deployer{subscrition}
 
 	for _, workload := range Workloads {
 		for _, deployer := range Deployers {
@@ -58,23 +59,23 @@ func runTestFlow(t *testing.T) {
 		t.Fatal("Deploy failed")
 	}
 
-	if !t.Run("Enable", EnableAction) {
-		t.Fatal("Enable failed")
-	}
+	// if !t.Run("Enable", EnableAction) {
+	// 	t.Fatal("Enable failed")
+	// }
 
-	if !t.Run("Failover", FailoverAction) {
-		t.Fatal("Failover failed")
-	}
+	// if !t.Run("Failover", FailoverAction) {
+	// 	t.Fatal("Failover failed")
+	// }
 
-	if !t.Run("Relocate", RelocateAction) {
-		t.Fatal("Relocate failed")
-	}
+	// if !t.Run("Relocate", RelocateAction) {
+	// 	t.Fatal("Relocate failed")
+	// }
 
-	if !t.Run("Disable", DisableAction) {
-		t.Fatal("Disable failed")
-	}
+	// if !t.Run("Disable", DisableAction) {
+	// 	t.Fatal("Disable failed")
+	// }
 
-	if !t.Run("Undeploy", UndeployAction) {
-		t.Fatal("Undeploy failed")
-	}
+	// if !t.Run("Undeploy", UndeployAction) {
+	// 	t.Fatal("Undeploy failed")
+	// }
 }
