@@ -5,11 +5,9 @@ import (
 
 	"github.com/ramendr/ramen/e2e/dractions"
 	"github.com/ramendr/ramen/e2e/testcontext"
-	"github.com/ramendr/ramen/e2e/util"
 )
 
 func DeployAction(t *testing.T) {
-	util.Ctx.Log.Info(t.Name())
 	testCtx, err := testcontext.GetTestContext(t.Name())
 	if err != nil {
 		t.Error(err)
@@ -21,7 +19,6 @@ func DeployAction(t *testing.T) {
 }
 
 func EnableAction(t *testing.T) {
-	util.Ctx.Log.Info(t.Name())
 	testCtx, err := testcontext.GetTestContext(t.Name())
 	if err != nil {
 		t.Error(err)
@@ -33,7 +30,6 @@ func EnableAction(t *testing.T) {
 }
 
 func FailoverAction(t *testing.T) {
-	util.Ctx.Log.Info(t.Name())
 	testCtx, err := testcontext.GetTestContext(t.Name())
 	if err != nil {
 		t.Error(err)
@@ -45,7 +41,6 @@ func FailoverAction(t *testing.T) {
 }
 
 func RelocateAction(t *testing.T) {
-	util.Ctx.Log.Info(t.Name())
 	testCtx, err := testcontext.GetTestContext(t.Name())
 	if err != nil {
 		t.Error(err)
@@ -57,8 +52,6 @@ func RelocateAction(t *testing.T) {
 }
 
 func DisableAction(t *testing.T) {
-	util.Ctx.Log.Info(t.Name())
-
 	testCtx, err := testcontext.GetTestContext(t.Name())
 	if err != nil {
 		t.Error(err)
@@ -70,8 +63,6 @@ func DisableAction(t *testing.T) {
 }
 
 func UndeployAction(t *testing.T) {
-	util.Ctx.Log.Info(t.Name())
-
 	testCtx, err := testcontext.GetTestContext(t.Name())
 	if err != nil {
 		t.Error(err)

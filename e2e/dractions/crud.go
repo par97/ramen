@@ -13,6 +13,7 @@ import (
 func getPlacement(ctrlClient client.Client, namespace, name string) (*clusterv1beta1.Placement, error) {
 	placement := &clusterv1beta1.Placement{}
 	key := types.NamespacedName{Namespace: namespace, Name: name}
+
 	err := ctrlClient.Get(context.Background(), key, placement)
 	if err != nil {
 		return nil, err
@@ -33,6 +34,7 @@ func updatePlacement(ctrlClient client.Client, placement *clusterv1beta1.Placeme
 func getPlacementDecision(ctrlClient client.Client, namespace, name string) (*clusterv1beta1.PlacementDecision, error) {
 	placementDecision := &clusterv1beta1.PlacementDecision{}
 	key := types.NamespacedName{Namespace: namespace, Name: name}
+
 	err := ctrlClient.Get(context.Background(), key, placementDecision)
 	if err != nil {
 		return nil, err
@@ -44,6 +46,7 @@ func getPlacementDecision(ctrlClient client.Client, namespace, name string) (*cl
 func getDRPC(ctrlClient client.Client, namespace, name string) (*ramen.DRPlacementControl, error) {
 	drpc := &ramen.DRPlacementControl{}
 	key := types.NamespacedName{Namespace: namespace, Name: name}
+
 	err := ctrlClient.Get(context.Background(), key, drpc)
 	if err != nil {
 		return nil, err
@@ -76,6 +79,7 @@ func updateDRPC(ctrlClient client.Client, drpc *ramen.DRPlacementControl) error 
 func deleteDRPC(ctrlClient client.Client, namespace, name string) error {
 	objDrpc := &ramen.DRPlacementControl{}
 	key := types.NamespacedName{Namespace: namespace, Name: name}
+
 	err := ctrlClient.Get(context.Background(), key, objDrpc)
 	if err != nil {
 		if !errors.IsNotFound(err) {
@@ -96,6 +100,7 @@ func deleteDRPC(ctrlClient client.Client, namespace, name string) error {
 func getDRPolicy(ctrlClient client.Client, name string) (*ramen.DRPolicy, error) {
 	drpolicy := &ramen.DRPolicy{}
 	key := types.NamespacedName{Name: name}
+
 	err := ctrlClient.Get(context.Background(), key, drpolicy)
 	if err != nil {
 		return nil, err

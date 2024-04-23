@@ -36,6 +36,7 @@ func GetTestContext(name string) (TestContext, error) {
 		if i < 1 {
 			return TestContext{}, fmt.Errorf("not a valid name in getTestContext: %v", name)
 		}
+
 		testCtx, ok = testContextMap[name[0:i]]
 		if !ok {
 			return TestContext{}, fmt.Errorf("can not find testContext with name: %v", name)

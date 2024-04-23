@@ -51,6 +51,7 @@ func waitDRPCReady(client client.Client, namespace string, drpcName string) erro
 
 	for {
 		ready := true
+
 		drpc, err := getDRPC(client, namespace, drpcName)
 		if err != nil {
 			return err
@@ -59,6 +60,7 @@ func waitDRPCReady(client client.Client, namespace string, drpcName string) erro
 		for _, cond := range drpc.Status.Conditions {
 			if cond.Type == "Available" && cond.Status != "True" {
 				util.Ctx.Log.Info("drpc " + drpcName + " status Available is not True")
+
 				ready = false
 
 				break
@@ -66,6 +68,7 @@ func waitDRPCReady(client client.Client, namespace string, drpcName string) erro
 
 			if cond.Type == "PeerReady" && cond.Status != "True" {
 				util.Ctx.Log.Info("drpc " + drpcName + " status PeerReady is not True")
+
 				ready = false
 
 				break
@@ -75,6 +78,7 @@ func waitDRPCReady(client client.Client, namespace string, drpcName string) erro
 		if ready {
 			if drpc.Status.LastGroupSyncTime == nil {
 				util.Ctx.Log.Info("drpc " + drpcName + " status LastGroupSyncTime is nil")
+
 				ready = false
 			}
 		}
@@ -104,6 +108,7 @@ func waitDRPCPhase(client client.Client, namespace string, drpcName string, phas
 		if err != nil {
 			return err
 		}
+
 		currentPhase := string(drpc.Status.Phase)
 		if currentPhase == phase {
 			util.Ctx.Log.Info("drpc  " + drpcName + " phase is " + phase)
@@ -129,6 +134,7 @@ func getCurrentCluster(client client.Client, namespace string, placementName str
 	}
 
 	util.Ctx.Log.Info("get placementdecision " + placementDecisionName)
+
 	placementDecision, err := getPlacementDecision(client, namespace, placementDecisionName)
 	if err != nil {
 		return "", err
