@@ -229,7 +229,7 @@ func deleteSubscription(s Subscription, w workloads.Workload) error {
 }
 
 func GetCombinedName(d Deployer, w workloads.Workload) string {
-	return strings.ToLower(d.GetName() + "-" + w.GetAppName())
+	return strings.ToLower(d.GetName() + "-" + w.GetName() + "-" + w.GetAppName())
 }
 
 func createChannel() error {

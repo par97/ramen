@@ -49,12 +49,15 @@ type testDef struct {
 }
 
 var Suites = []testDef{
-	{"Validate", Validate},
 	{"Exhaustive", Exhaustive},
 }
 
 func TestSuites(t *testing.T) {
 	util.Ctx.Log.Info(t.Name())
+
+	if !t.Run("Validate", Validate) {
+		t.Fatal("Failed to validate the test suite")
+	}
 
 	for _, suite := range Suites {
 		t.Run(suite.name, suite.test)

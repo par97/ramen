@@ -22,7 +22,10 @@ func Exhaustive(t *testing.T) {
 	deployment := &workloads.Deployment{}
 	deployment.Init()
 
-	Workloads := []workloads.Workload{deployment}
+	deploymentFS := &workloads.DeploymentFS{}
+	deploymentFS.Init()
+
+	Workloads := []workloads.Workload{deployment, deploymentFS}
 
 	subscription := &deployers.Subscription{}
 	subscription.Init()

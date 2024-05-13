@@ -133,7 +133,7 @@ func getCurrentCluster(client client.Client, namespace string, placementName str
 		return "", err
 	}
 
-	util.Ctx.Log.Info("get placementdecision " + placementDecisionName)
+	// util.Ctx.Log.Info("got placementdecision " + placementDecisionName)
 
 	placementDecision, err := getPlacementDecision(client, namespace, placementDecisionName)
 	if err != nil {
