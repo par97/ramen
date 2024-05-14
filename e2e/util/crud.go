@@ -80,6 +80,7 @@ func AddNamespaceAnnotationForVolSync(client client.Client, namespace string) er
 	if annotations == nil {
 		annotations = make(map[string]string)
 	}
+
 	annotations["volsync.backube/privileged-movers"] = "true"
 	objNs.SetAnnotations(annotations)
 

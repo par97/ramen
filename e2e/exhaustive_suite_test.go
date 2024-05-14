@@ -15,27 +15,32 @@ import (
 // Workloads = {"Deployment", "STS", "DaemonSet"}
 // Classes   = {"rbd", "cephfs"}
 
+var deployment = &workloads.Deployment{
+	Path:     "workloads/deployment/k8s-regional-rbd",
+	Revision: "main",
+	AppName:  "busybox",
+	Name:     "Deployment",
+}
+
+var deploymentFS = &workloads.Deployment{
+	Path:     "workloads/deployment/k8s-regional-cephfs",
+	Revision: "main",
+	AppName:  "busybox",
+	Name:     "DeploymentFS",
+}
+
+var Workloads = []workloads.Workload{deployment, deploymentFS}
+
+var subscription = &deployers.Subscription{}
+
+// appset := &deployers.ApplicationSet{}
+// Deployers := []deployers.Deployer{subscription, appset}
+
+var Deployers = []deployers.Deployer{subscription}
+
 func Exhaustive(t *testing.T) {
 	t.Helper()
 	t.Parallel()
-
-	deployment := &workloads.Deployment{
-		Path:     "workloads/deployment/k8s-regional-rbd",
-		Revision: "main",
-		AppName:  "busybox",
-		Name:     "Deployment",
-	}
-	deploymentFS := &workloads.Deployment{
-		Path:     "workloads/deployment/k8s-regional-cephfs",
-		Revision: "main",
-		AppName:  "busybox",
-		Name:     "DeploymentFS",
-	}
-	Workloads := []workloads.Workload{deployment, deploymentFS}
-	subscription := &deployers.Subscription{}
-	// appset := &deployers.ApplicationSet{}
-	// Deployers := []deployers.Deployer{subscription, appset}
-	Deployers := []deployers.Deployer{subscription}
 
 	for _, workload := range Workloads {
 		for _, deployer := range Deployers {
