@@ -28,41 +28,11 @@ const (
 )
 
 func createNamespace(namespace string) error {
-	ns := &corev1.Namespace{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: namespace,
-		},
-	}
-
-	err := util.Ctx.Hub.CtrlClient.Create(context.Background(), ns)
-	if err != nil {
-		if !errors.IsAlreadyExists(err) {
-			return err
-		}
-
-		util.Ctx.Log.Info("namespace " + namespace + " already Exists")
-	}
-
-	return nil
+	return util.CreateNamespace(util.Ctx.Hub.CtrlClient, namespace)
 }
 
 func deleteNamespace(namespace string) error {
-	ns := &corev1.Namespace{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: namespace,
-		},
-	}
-
-	err := util.Ctx.Hub.CtrlClient.Delete(context.Background(), ns)
-	if err != nil {
-		if !errors.IsNotFound(err) {
-			return err
-		}
-
-		util.Ctx.Log.Info("namespace " + namespace + " not found")
-	}
-
-	return nil
+	return util.DeleteNamespace(util.Ctx.Hub.CtrlClient, namespace)
 }
 
 func createManagedClusterSetBinding(name, namespace string) error {

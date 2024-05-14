@@ -19,20 +19,21 @@ func Exhaustive(t *testing.T) {
 	t.Helper()
 	t.Parallel()
 
-	deployment := &workloads.Deployment{}
-	deployment.Init()
-
-	deploymentFS := &workloads.DeploymentFS{}
-	deploymentFS.Init()
-
+	deployment := &workloads.Deployment{
+		Path:     "workloads/deployment/k8s-regional-rbd",
+		Revision: "main",
+		AppName:  "busybox",
+		Name:     "Deployment",
+	}
+	deploymentFS := &workloads.Deployment{
+		Path:     "workloads/deployment/k8s-regional-cephfs",
+		Revision: "main",
+		AppName:  "busybox",
+		Name:     "DeploymentFS",
+	}
 	Workloads := []workloads.Workload{deployment, deploymentFS}
-
 	subscription := &deployers.Subscription{}
-	subscription.Init()
-
-	appset := &deployers.ApplicationSet{}
-	appset.Init()
-
+	// appset := &deployers.ApplicationSet{}
 	// Deployers := []deployers.Deployer{subscription, appset}
 	Deployers := []deployers.Deployer{subscription}
 

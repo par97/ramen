@@ -13,9 +13,6 @@ const McsbName = ClusterSetName
 
 type Subscription struct{}
 
-func (s Subscription) Init() {
-}
-
 func (s Subscription) GetName() string {
 	return "Subscription"
 }
