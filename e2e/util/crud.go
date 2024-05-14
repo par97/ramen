@@ -23,8 +23,6 @@ func CreateNamespace(client client.Client, namespace string) error {
 		if !errors.IsAlreadyExists(err) {
 			return err
 		}
-
-		// Ctx.Log.Info("namespace " + namespace + " already Exists")
 	}
 
 	return nil
