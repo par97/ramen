@@ -55,7 +55,7 @@ func createManagedClusterSetBinding(name, namespace string) error {
 			return err
 		}
 
-		util.Ctx.Log.Info("managedClusterSetBinding " + mcsb.Name + " already Exists")
+		// util.Ctx.Log.Info("managedClusterSetBinding " + mcsb.Name + " already Exists")
 	}
 
 	return nil
@@ -220,7 +220,7 @@ func createChannel() error {
 			return err
 		}
 
-		util.Ctx.Log.Info("channel " + util.GetChannelName() + " already Exists")
+		// util.Ctx.Log.Info("channel " + util.GetChannelName() + " already Exists")
 	}
 
 	return nil
