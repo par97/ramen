@@ -6,6 +6,7 @@ package deployers
 import (
 	"github.com/ramendr/ramen/e2e/util"
 	"github.com/ramendr/ramen/e2e/workloads"
+	subscriptionv1 "open-cluster-management.io/multicloud-operators-subscription/pkg/apis/apps/v1"
 )
 
 // mcsb name must be same as the target ManagedClusterSet
@@ -29,19 +30,8 @@ func (s Subscription) Deploy(w workloads.Workload) error {
 	name := GetCombinedName(s, w)
 	namespace := name
 
-	// create channel namespace
-	err := createNamespace(util.GetChannelNamespace())
-	if err != nil {
-		return err
-	}
-
-	err = createChannel()
-	if err != nil {
-		return err
-	}
-
 	// create subscription namespace
-	err = createNamespace(namespace)
+	err := util.CreateNamespace(util.Ctx.Hub.CtrlClient, namespace)
 	if err != nil {
 		return err
 	}
@@ -61,7 +51,7 @@ func (s Subscription) Deploy(w workloads.Workload) error {
 		return err
 	}
 
-	err = waitSubscriptionPhase(namespace, name, "Propagated")
+	err = waitSubscriptionPhase(namespace, name, subscriptionv1.SubscriptionPropagated)
 	if err != nil {
 		return err
 	}
@@ -71,7 +61,7 @@ func (s Subscription) Deploy(w workloads.Workload) error {
 
 func (s Subscription) Undeploy(w workloads.Workload) error {
 	// Delete Subscription, Placement, Binding
-	util.Ctx.Log.Info("enter Undeploy " + w.GetName() + "/Subscription")
+	util.Ctx.Log.Info("enter Undeploy " + w.GetName() + s.GetName())
 
 	name := GetCombinedName(s, w)
 	namespace := name
@@ -91,7 +81,7 @@ func (s Subscription) Undeploy(w workloads.Workload) error {
 		return err
 	}
 
-	err = deleteNamespace(namespace)
+	err = util.DeleteNamespace(util.Ctx.Hub.CtrlClient, namespace)
 	if err != nil {
 		return err
 	}
