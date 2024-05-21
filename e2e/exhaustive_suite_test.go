@@ -15,14 +15,30 @@ import (
 // Workloads = {"Deployment", "STS", "DaemonSet"}
 // Classes   = {"rbd", "cephfs"}
 
-var deployment = &workloads.Deployment{
+var deploymentRBD = &workloads.Deployment{
 	Path:     "workloads/deployment/k8s-regional-rbd",
 	Revision: "main",
 	AppName:  "busybox",
-	Name:     "Deployment",
+	Name:     "DeploymentRBD",
 }
 
-var Workloads = []workloads.Workload{deployment}
+var deploymentFS = &workloads.Deployment{
+	Path:     "workloads/deployment/k8s-regional-rbd",
+	Revision: "main",
+	AppName:  "busybox",
+	Name:     "DeploymentFS",
+	Patch: `{
+		"patches": [{
+			"target": {
+				"kind": "PersistentVolumeClaim",
+				"name": "busybox-pvc"
+			},
+			"patch": "- op: replace\n  path: /spec/storageClassName\n  value: rook-cephfs"
+		}]
+	}`,
+}
+
+var Workloads = []workloads.Workload{deploymentRBD, deploymentFS}
 
 var subscription = &deployers.Subscription{}
 

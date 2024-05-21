@@ -9,6 +9,7 @@ type Deployment struct {
 	Revision string
 	AppName  string
 	Name     string
+	Patch    string
 }
 
 func (w Deployment) GetAppName() string {
@@ -31,8 +32,8 @@ func (w Deployment) GetRevision() string {
 	return w.Revision
 }
 
-func (w Deployment) Kustomize() error {
-	return nil
+func (w Deployment) Kustomize() string {
+	return w.Patch
 }
 
 func (w Deployment) GetResources() error {
