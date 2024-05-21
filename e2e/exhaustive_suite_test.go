@@ -22,7 +22,14 @@ var deployment = &workloads.Deployment{
 	Name:     "Deployment",
 }
 
-var Workloads = []workloads.Workload{deployment}
+var deploymentFS = &workloads.Deployment{
+	Path:     "workloads/deployment/k8s-regional-cephfs",
+	Revision: "main",
+	AppName:  "busybox",
+	Name:     "DeploymentFS",
+}
+
+var Workloads = []workloads.Workload{deployment, deploymentFS}
 
 var subscription = &deployers.Subscription{}
 
