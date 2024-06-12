@@ -4,77 +4,26 @@
 # yamllint disable rule:line-length
 ---
 resources:
+  - argocd-ns.yaml
   - https://raw.githubusercontent.com/argoproj/argo-cd/release-2.11/manifests/install.yaml
 
+# In argocd appset DR e2e test, an appset CR will be created that uses placementdecision 
+# resource to decide which cluster to deploy application. So here need add role for 
+# placementdecision.
 patches:
   - target:
       kind: Role
       name: argocd-applicationset-controller
     patch: |-
-      - op: replace
-        path: /rules
+      - op: add 
+        path: /rules/-
         value:
-        - apiGroups:
-          - argoproj.io
-          resources:
-          - applications
-          - applicationsets
-          - applicationsets/finalizers
-          verbs:
-          - create
-          - delete
-          - get
-          - list
-          - patch
-          - update
-          - watch
-        - apiGroups:
-          - argoproj.io
-          resources:
-          - appprojects
-          verbs:
-          - get
-        - apiGroups:
-          - argoproj.io
-          resources:
-          - applicationsets/status
-          verbs:
-          - get
-          - patch
-          - update
-        - apiGroups:
-          - ""
-          resources:
-          - events
-          verbs:
-          - create
-          - get
-          - list
-          - patch
-          - watch
-        - apiGroups:
-          - ""
-          resources:
-          - secrets
-          - configmaps
-          verbs:
-          - get
-          - list
-          - watch
-        - apiGroups:
-          - apps
-          - extensions
-          resources:
-          - deployments
-          verbs:
-          - get
-          - list
-          - watch
-        - apiGroups:
+          apiGroups:
           - cluster.open-cluster-management.io
           resources:
           - placementdecisions
           verbs:
-          - get
+          - get 
           - list
           - watch
+
