@@ -10,6 +10,14 @@ import subprocess
 
 from drenv import kubectl
 from drenv import cache
+from drenv import cluster
+from argocdenv import get_argocd_env
+
+
+def wait_for_clusters(clusters):
+    for name in clusters:
+        print(f"Waiting until cluster '{name}' is ready")
+        cluster.wait_until_ready(name)
 
 
 def deploy_argocd(cluster):
@@ -35,30 +43,10 @@ def add_clusters(hub, clusters):
     # Need switch to hub cluster argocd ns first, otherwise will hit argocd bug
     # see https://github.com/argoproj/argo-cd/issues/14167
     with tempfile.TemporaryDirectory(prefix="drenv-argocd.") as tmpdir:
-        # Create a temporary kubeconfig so we don't modify the shared config
-        # used by other addons concurrently.
-        kubeconfig = os.path.join(tmpdir, "kubeconfig")
-
-        print(f"Creating temporary kubeconfig {kubeconfig}")
-        out = kubectl.config("view", "--flatten", "--output=yaml")
-        with open(kubeconfig, "w") as f:
-            f.write(out)
-        kubectl.config("use-context", f"--kubeconfig={kubeconfig}", hub)
-        kubectl.config(
-            "set-context",
-            f"--kubeconfig={kubeconfig}",
-            "--current",
-            "--namespace=argocd",
-        )
-
-        # Create an environemnt so we can pass the kubeconfig to argocd.
-        env = dict(os.environ)
-        env["KUBECONFIG"] = kubeconfig
-
+        env=get_argocd_env(tmpdir,hub)
         # The follwoing commands use subprocess.run since commamnds.run/watch
         # do not support setting child process environment.
         # TODO: add env argumnet to commands.run/watch.
-
         print("Logging in to argocd server on hub")
         subprocess.run(["argocd", "login", "--core"], check=True, env=env)
 
@@ -81,8 +69,9 @@ if len(sys.argv) != 4:
 
 os.chdir(os.path.dirname(__file__))
 hub = sys.argv[1]
-clusters = [sys.argv[2], sys.argv[3]]
+clusters = sys.argv[1:]
 
+wait_for_clusters(clusters)
 deploy_argocd(hub)
 wait_for_deployments(hub)
 add_clusters(hub, clusters)
