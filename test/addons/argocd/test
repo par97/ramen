@@ -4,7 +4,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import sys
-import os
 import tempfile
 import subprocess
 
@@ -14,7 +13,6 @@ from argocdenv import get_argocd_env
 
 def deploy_guestbook(cluster):
     print(f"Deploying application guestbook in namespace argocd-test on cluster {cluster}")
-
     # Need switch to hub cluster argocd ns first, otherwise will hit argocd bug
     # see https://github.com/argoproj/argo-cd/issues/14167
     with tempfile.TemporaryDirectory(prefix="drenv-argocd.") as tmpdir:
@@ -62,11 +60,11 @@ def undeploy_guestbook(cluster):
         # do not support setting child process environment.
         # TODO: add env argumnet to commands.run/watch.
         subprocess.run(
-            ["argocd", "app", "delete", "guestbook", "--yes"],
+            ["argocd", "app", "delete", "guestbook", "--yes", "--wait"],
             check=True,
             env=env,
         )
-    
+    kubectl.delete("namespace", "argocd-test", context=cluster)
 
 
 if len(sys.argv) != 4:
