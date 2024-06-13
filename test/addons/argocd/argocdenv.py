@@ -7,6 +7,7 @@ import os
 
 from drenv import kubectl
 
+
 def get_argocd_env(tmpdir, cluster):
     # Create a temporary kubeconfig so we don't modify the shared config
     # used by other addons concurrently.

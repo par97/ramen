@@ -40,10 +40,11 @@ def wait_for_deployments(cluster):
 
 
 def add_clusters(hub, clusters):
-    # Need switch to hub cluster argocd ns first, otherwise will hit argocd bug
+    # need use KUBECONFIG env, or switch to hub cluster argocd ns first,
+    # otherwise will hit argocd command bug
     # see https://github.com/argoproj/argo-cd/issues/14167
     with tempfile.TemporaryDirectory(prefix="drenv-argocd.") as tmpdir:
-        env=get_argocd_env(tmpdir,hub)
+        env = get_argocd_env(tmpdir, hub)
         # The follwoing commands use subprocess.run since commamnds.run/watch
         # do not support setting child process environment.
         # TODO: add env argumnet to commands.run/watch.
