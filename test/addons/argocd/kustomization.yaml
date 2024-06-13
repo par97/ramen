@@ -7,15 +7,15 @@ resources:
   - argocd-ns.yaml
   - https://raw.githubusercontent.com/argoproj/argo-cd/release-2.11/manifests/install.yaml
 
-# In argocd appset DR e2e test, an appset CR will be created that uses placementdecision 
-# resource to decide which cluster to deploy application. So here need add role for 
+# In argocd appset DR e2e test, an appset CR will be created that uses placementdecision
+# resource to decide which cluster to deploy application. So here need add role for
 # placementdecision.
 patches:
   - target:
       kind: Role
       name: argocd-applicationset-controller
     patch: |-
-      - op: add 
+      - op: add
         path: /rules/-
         value:
           apiGroups:
@@ -26,4 +26,3 @@ patches:
           - get
           - list
           - watch
-
