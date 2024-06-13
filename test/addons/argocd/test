@@ -1,0 +1,95 @@
+#!/usr/bin/env python3
+
+# SPDX-FileCopyrightText: The RamenDR authors
+# SPDX-License-Identifier: Apache-2.0
+
+import sys
+import os
+import tempfile
+import subprocess
+
+from drenv import kubectl
+from drenv import commands
+
+
+def deploy_guestbook(cluster):
+    print(f"Deploying application guestbook on cluster {cluster}")
+
+    # Need switch to hub cluster argocd ns first, otherwise will hit argocd bug
+    # see https://github.com/argoproj/argo-cd/issues/14167
+    with tempfile.TemporaryDirectory(prefix="drenv-argocd.") as tmpdir:
+        # Create a temporary kubeconfig so we don't modify the shared config
+        # used by other addons concurrently.
+        kubeconfig = os.path.join(tmpdir, "kubeconfig")
+
+        print(f"Creating temporary kubeconfig {kubeconfig}")
+        out = kubectl.config("view", "--flatten", "--output=yaml")
+        with open(kubeconfig, "w") as f:
+            f.write(out)
+        kubectl.config("use-context", f"--kubeconfig={kubeconfig}", hub)
+        kubectl.config(
+            "set-context",
+            f"--kubeconfig={kubeconfig}",
+            "--current",
+            "--namespace=argocd",
+        )
+
+        # Create an environemnt so we can pass the kubeconfig to argocd.
+        env = dict(os.environ)
+        env["KUBECONFIG"] = kubeconfig
+
+        # The follwoing commands use subprocess.run since commamnds.run/watch
+        # do not support setting child process environment.
+        # TODO: add env argumnet to commands.run/watch.
+
+        # print("Logging in to argocd server on hub")
+        # subprocess.run(["argocd", "login", "--core"], check=True, env=env)
+
+        # commands.run(
+        subprocess.run(
+            [
+                "argocd",
+                "app",
+                "create",
+                "guestbook",
+                "--repo=https://github.com/argoproj/argocd-example-apps.git",
+                "--path=guestbook",
+                "--dest-server=https://kubernetes.default.svc",
+                "--dest-namespace=argocd-test",
+                "--sync-option=CreateNamespace=true",
+                "--sync-policy=automated",
+                f"--kube-context={cluster}",
+            ],
+            check=True,
+            env=env,
+        )
+
+
+def wait_until_guestbook_is_healthy(cluster):
+    print("Waiting application guestbook to be healthy")
+    kubectl.wait(
+        "application",
+        "guestbook",
+        "--for=jsonpath={.status.health.status}=Healthy",
+        "--namespace=argocd",
+        "--timeout=60s",
+        context=cluster,
+    )
+
+
+def undeploy_guestbook(cluster):
+    print("Deleting application guestbook")
+    commands.run(
+        "argocd", "app", "delete", "guestbook", "--yes", "--kube-context", cluster
+    )
+
+
+if len(sys.argv) != 4:
+    print(f"Usage: {sys.argv[0]} hub cluster1 cluster2")
+    sys.exit(1)
+
+hub = sys.argv[1]
+
+deploy_guestbook(hub)
+wait_until_guestbook_is_healthy(hub)
+undeploy_guestbook(hub)
