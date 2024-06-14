@@ -45,7 +45,7 @@ def add_clusters(hub, clusters):
     # see https://github.com/argoproj/argo-cd/issues/14167
     with tempfile.TemporaryDirectory(prefix="drenv-argocd.") as tmpdir:
         env = get_argocd_env(tmpdir, hub)
-        # The follwoing commands use subprocess.run since commamnds.run/watch
+        # The following commands use subprocess.run since commamnds.run/watch
         # do not support setting child process environment.
         # TODO: add env argumnet to commands.run/watch.
         print("Logging in to argocd server on hub")
