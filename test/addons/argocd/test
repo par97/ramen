@@ -4,41 +4,44 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import sys
-import tempfile
-import subprocess
 
+from drenv import temporary_kubeconfig
+from drenv import commands
 from drenv import kubectl
-from argocdenv import get_argocd_env
 
 
 def deploy_guestbook(cluster):
     print(
         f"Deploying application guestbook in namespace argocd-test on cluster {cluster}"
     )
-    # need use KUBECONFIG env, or switch to hub cluster argocd ns first,
+    # need use KUBECONFIG env, switch to hub cluster argocd ns first,
     # otherwise will hit argocd command bug
     # see https://github.com/argoproj/argo-cd/issues/14167
-    with tempfile.TemporaryDirectory(prefix="drenv-argocd.") as tmpdir:
-        env = get_argocd_env(tmpdir, cluster)
-        # The following commands use subprocess.run since commamnds.run/watch
-        # do not support setting child process environment.
-        # TODO: add env argumnet to commands.run/watch.
-        subprocess.run(
-            [
-                "argocd",
-                "app",
-                "create",
-                "guestbook",
-                "--repo=https://github.com/argoproj/argocd-example-apps.git",
-                "--path=guestbook",
-                "--dest-server=https://kubernetes.default.svc",
-                "--dest-namespace=argocd-test",
-                "--sync-option=CreateNamespace=true",
-                "--sync-policy=automated",
-            ],
-            check=True,
-            env=env,
+    with temporary_kubeconfig("drenv-argocd-test.") as env:
+        kubeconfig = env["KUBECONFIG"]
+        kubectl.config("use-context", hub, "--kubeconfig", kubeconfig)
+        kubectl.config(
+            "set-context",
+            "--current",
+            "--namespace=argocd",
+            "--kubeconfig",
+            kubeconfig,
         )
+
+        for line in commands.watch(
+            "argocd",
+            "app",
+            "create",
+            "guestbook",
+            "--repo=https://github.com/argoproj/argocd-example-apps.git",
+            "--path=guestbook",
+            "--dest-server=https://kubernetes.default.svc",
+            "--dest-namespace=argocd-test",
+            "--sync-option=CreateNamespace=true",
+            "--sync-policy=automated",
+            env=env,
+        ):
+            print(line)
 
 
 def wait_until_guestbook_is_healthy(cluster):
@@ -55,19 +58,25 @@ def wait_until_guestbook_is_healthy(cluster):
 
 def undeploy_guestbook(cluster):
     print("Deleting application guestbook")
-    # need use KUBECONFIG env, or switch to hub cluster argocd ns first,
+    # need use KUBECONFIG env, switch to hub cluster argocd ns first,
     # otherwise will hit argocd command bug
     # see https://github.com/argoproj/argo-cd/issues/14167
-    with tempfile.TemporaryDirectory(prefix="drenv-argocd.") as tmpdir:
-        env = get_argocd_env(tmpdir, cluster)
-        # The following commands use subprocess.run since commamnds.run/watch
-        # do not support setting child process environment.
-        # TODO: add env argumnet to commands.run/watch.
-        subprocess.run(
-            ["argocd", "app", "delete", "guestbook", "--yes", "--wait"],
-            check=True,
-            env=env,
+    with temporary_kubeconfig("drenv-argocd-test.") as env:
+        kubeconfig = env["KUBECONFIG"]
+        kubectl.config("use-context", hub, "--kubeconfig", kubeconfig)
+        kubectl.config(
+            "set-context",
+            "--current",
+            "--namespace=argocd",
+            "--kubeconfig",
+            kubeconfig,
         )
+
+        for line in commands.watch(
+            "argocd", "app", "delete", "guestbook", "--yes", "--wait", env=env
+        ):
+            print(line)
+
     kubectl.delete("namespace", "argocd-test", context=cluster)
 
 
