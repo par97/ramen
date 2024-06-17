@@ -10,6 +10,10 @@ import (
 	"github.com/spf13/viper"
 )
 
+type PVC struct {
+	StorageClassName string `mapstructure:"storageclassname" required:"true"`
+	AccessModes      string `mapstructure:"accessmodes" required:"true"`
+}
 type TestConfig struct {
 	ChannelName      string
 	ChannelNamespace string
@@ -17,6 +21,7 @@ type TestConfig struct {
 	Clusters         map[string]struct {
 		KubeconfigPath string `mapstructure:"kubeconfigpath" required:"true"`
 	} `mapstructure:"clusters" required:"true"`
+	PVCS []PVC `mapstructure:"pvcs" required:"true"`
 }
 
 var config = &TestConfig{}
@@ -66,6 +71,10 @@ func ReadConfig(log *logr.Logger, configFile string) error {
 		return fmt.Errorf("failed to find c2 cluster in configuration")
 	}
 
+	if len(config.PVCS) == 0 {
+		return fmt.Errorf("failed to find pvcs in configuration")
+	}
+
 	return nil
 }
 
@@ -79,4 +88,8 @@ func GetChannelNamespace() string {
 
 func GetGitURL() string {
 	return config.GitURL
+}
+
+func GetPVCS() []PVC {
+	return config.PVCS
 }

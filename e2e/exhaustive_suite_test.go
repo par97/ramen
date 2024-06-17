@@ -4,10 +4,12 @@
 package e2e_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/ramendr/ramen/e2e/deployers"
 	"github.com/ramendr/ramen/e2e/testcontext"
+	"github.com/ramendr/ramen/e2e/util"
 	"github.com/ramendr/ramen/e2e/workloads"
 )
 
@@ -15,30 +17,11 @@ import (
 // Workloads = {"Deployment", "STS", "DaemonSet"}
 // Classes   = {"rbd", "cephfs"}
 
-var deploymentRBD = &workloads.Deployment{
-	Path:     "workloads/deployment/k8s-regional-rbd",
-	Revision: "main",
-	AppName:  "busybox",
-	Name:     "DeploymentRBD",
-}
+const GITPATH = "workloads/deployment/base"
+const GITREVISION = "main"
+const APPNAME = "busybox"
 
-var deploymentFS = &workloads.Deployment{
-	Path:     "workloads/deployment/k8s-regional-rbd",
-	Revision: "main",
-	AppName:  "busybox",
-	Name:     "DeploymentFS",
-	Patch: `{
-		"patches": [{
-			"target": {
-				"kind": "PersistentVolumeClaim",
-				"name": "busybox-pvc"
-			},
-			"patch": "- op: replace\n  path: /spec/storageClassName\n  value: rook-cephfs"
-		}]
-	}`,
-}
-
-var Workloads = []workloads.Workload{deploymentRBD, deploymentFS}
+var Workloads = []workloads.Workload{}
 
 var subscription = &deployers.Subscription{}
 
@@ -47,9 +30,34 @@ var subscription = &deployers.Subscription{}
 
 var Deployers = []deployers.Deployer{subscription}
 
+func generateWorkloads([]workloads.Workload) {
+	pvcs := util.GetPVCS()
+	for i := 0; i < len(pvcs); i++ {
+		deployment := &workloads.Deployment{
+			Path:     GITPATH,
+			Revision: GITREVISION,
+			AppName:  APPNAME,
+			Name:     fmt.Sprintf("Deployment-%d", i),
+			Patch: `{
+						"patches": [{
+							"target": {
+								"kind": "PersistentVolumeClaim",
+								"name": "busybox-pvc"
+							},
+							"patch": "- op: replace\n  path: /spec/storageClassName\n  value: ` + pvcs[i].StorageClassName +
+				`\n- op: add\n  path: /spec/accessModes\n  value: [` + pvcs[i].AccessModes + `]"
+						}]
+					}`,
+		}
+		Workloads = append(Workloads, deployment)
+	}
+}
+
 func Exhaustive(t *testing.T) {
 	t.Helper()
 	t.Parallel()
+
+	generateWorkloads(Workloads)
 
 	for _, workload := range Workloads {
 		for _, deployer := range Deployers {
