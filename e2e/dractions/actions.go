@@ -23,14 +23,18 @@ const (
 // Determine PVC label selector
 // Determine KubeObjectProtection requirements if Imperative (?)
 // Create DRPC, in desired namespace
+// nolint:funlen
 func EnableProtection(w workloads.Workload, d deployers.Deployer) error {
 	util.Ctx.Log.Info("enter EnableProtection " + w.GetName() + "/" + d.GetName())
 
 	name := GetCombinedName(d, w)
 	namespace := name
-	// if isAppSet {
-	// 	namespace = util.ArgocdNamespace
-	// }
+
+	_, isAppSet := d.(*deployers.ApplicationSet)
+	if isAppSet {
+		namespace = util.ArgocdNamespace // if appset, need deploy in argocd ns
+	}
+
 	drPolicyName := DefaultDRPolicyName
 	appname := w.GetAppName()
 	placementName := name
@@ -91,9 +95,10 @@ func DisableProtection(w workloads.Workload, d deployers.Deployer) error {
 	drpcName := name
 	client := util.Ctx.Hub.CtrlClient
 
-	// if isAppSet {
-	// 	namespace = util.ArgocdNamespace
-	// }
+	_, isAppSet := d.(*deployers.ApplicationSet)
+	if isAppSet {
+		namespace = util.ArgocdNamespace
+	}
 
 	util.Ctx.Log.Info("delete drpc " + drpcName)
 
@@ -124,10 +129,10 @@ func Failover(w workloads.Workload, d deployers.Deployer) error {
 	name := GetCombinedName(d, w)
 	namespace := name
 
-	// _, isAppSet := d.(*deployers.ApplicationSet)
-	// if isAppSet {
-	// 	namespace = util.ArgocdNamespace
-	// }
+	_, isAppSet := d.(*deployers.ApplicationSet)
+	if isAppSet {
+		namespace = util.ArgocdNamespace
+	}
 
 	drPolicyName := DefaultDRPolicyName
 	drpcName := name
@@ -181,10 +186,11 @@ func Relocate(w workloads.Workload, d deployers.Deployer) error {
 	name := GetCombinedName(d, w)
 	namespace := name
 
-	// _, isAppSet := d.(*deployers.ApplicationSet)
-	// if isAppSet {
-	// 	namespace = util.ArgocdNamespace
-	// }
+	_, isAppSet := d.(*deployers.ApplicationSet)
+	if isAppSet {
+		namespace = util.ArgocdNamespace
+	}
+
 	drPolicyName := DefaultDRPolicyName
 	drpcName := name
 	client := util.Ctx.Hub.CtrlClient
