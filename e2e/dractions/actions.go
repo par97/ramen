@@ -77,7 +77,13 @@ func EnableProtection(w workloads.Workload, d deployers.Deployer) error {
 		return err
 	}
 
-	if err := util.CreateNamespaceAndAddAnnotation(namespace); err != nil {
+	nsToAnnonate := namespace
+	if isAppSet {
+		// this is the application namespace to add the annotation in case of argocd
+		nsToAnnonate = name
+	}
+
+	if err := util.CreateNamespaceAndAddAnnotation(nsToAnnonate); err != nil {
 		return err
 	}
 
