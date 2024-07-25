@@ -5,6 +5,7 @@ package e2e_test
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/ramendr/ramen/e2e/deployers"
@@ -19,31 +20,60 @@ import (
 
 const (
 	GITPATH     = "workloads/deployment/base"
-	GITREVISION = "main"
+	GITREVISION = "discovered-apps"
 	APPNAME     = "busybox"
 )
 
 var Workloads = []workloads.Workload{}
 
-var subscription = &deployers.Subscription{}
+// var subscription = &deployers.Subscription{}
+
+var discoveredApps = &deployers.DiscoveredApps{}
 
 // appset := &deployers.ApplicationSet{}
 // Deployers := []deployers.Deployer{subscription, appset}
 
-var Deployers = []deployers.Deployer{subscription}
+var Deployers = []deployers.Deployer{discoveredApps}
+
+func generateSuffix(storageClassName string) string {
+	suffix := storageClassName
+
+	if strings.ToLower(storageClassName) == "rook-ceph-block" {
+		suffix = "rbd"
+	}
+
+	if strings.ToLower(storageClassName) == "rook-cephfs" {
+		suffix = "cephfs"
+	}
+
+	return suffix
+}
 
 func generateWorkloads([]workloads.Workload) {
 	pvcSpecs := util.GetPVCSpecs()
-	for i, pvcSpec := range pvcSpecs {
+	for _, pvcSpec := range pvcSpecs {
+		// add storageclass name to deployment name
+		suffix := generateSuffix(pvcSpec.StorageClassName)
 		deployment := &workloads.Deployment{
 			Path:     GITPATH,
 			Revision: GITREVISION,
 			AppName:  APPNAME,
-			Name:     fmt.Sprintf("Deployment-%d", i),
+			Name:     fmt.Sprintf("Deployment-%s", suffix),
 			PVCSpec:  pvcSpec,
 		}
 		Workloads = append(Workloads, deployment)
 	}
+}
+
+// To skip certain test combination that is not supported
+func skipTest(w workloads.Workload, d deployers.Deployer) bool {
+	if w.GetName() == "Deployment-cephfs" && d.GetName() == "DiscoveredApps" {
+		util.Ctx.Log.Info("skip test for cephfs with DiscoveredApps")
+
+		return true
+	}
+
+	return false
 }
 
 func Exhaustive(t *testing.T) {
@@ -63,9 +93,11 @@ func Exhaustive(t *testing.T) {
 				t.Parallel()
 				t.Run(d.GetName(), func(t *testing.T) {
 					t.Parallel()
-					testcontext.AddTestContext(t.Name(), w, d)
-					runTestFlow(t)
-					testcontext.DeleteTestContext(t.Name(), w, d)
+					if !skipTest(w, d) {
+						testcontext.AddTestContext(t.Name(), w, d)
+						runTestFlow(t)
+						testcontext.DeleteTestContext(t.Name(), w, d)
+					}
 				})
 			})
 		}

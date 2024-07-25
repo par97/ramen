@@ -6,6 +6,7 @@ package deployers
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/ramendr/ramen/e2e/util"
@@ -13,8 +14,11 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/yaml"
+
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	ocmv1b1 "open-cluster-management.io/api/cluster/v1beta1"
@@ -28,7 +32,7 @@ const (
 	ClusterSetName = "default"
 )
 
-func createManagedClusterSetBinding(name, namespace string) error {
+func CreateManagedClusterSetBinding(name, namespace string) error {
 	labels := make(map[string]string)
 	labels[AppLabelKey] = namespace
 	mcsb := &ocmv1b2.ManagedClusterSetBinding{
@@ -52,7 +56,7 @@ func createManagedClusterSetBinding(name, namespace string) error {
 	return nil
 }
 
-func deleteManagedClusterSetBinding(name, namespace string) error {
+func DeleteManagedClusterSetBinding(name, namespace string) error {
 	mcsb := &ocmv1b2.ManagedClusterSetBinding{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
@@ -102,7 +106,7 @@ func createPlacement(name, namespace string) error {
 	return nil
 }
 
-func deletePlacement(name, namespace string) error {
+func DeletePlacement(name, namespace string) error {
 	placement := &ocmv1b1.Placement{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
@@ -215,4 +219,160 @@ func getSubscription(ctrlClient client.Client, namespace, name string) (*subscri
 	}
 
 	return subscription, nil
+}
+
+func createDeployment(client client.Client, deploy *appsv1.Deployment, namespace string) error {
+	deploy.Namespace = namespace
+
+	err := client.Create(context.Background(), deploy)
+	if err != nil {
+		if !errors.IsAlreadyExists(err) {
+			return err
+		}
+
+		util.Ctx.Log.Info("deployment " + deploy.Name + " already Exists")
+	}
+
+	return nil
+}
+
+func getDeployment(client client.Client, namespace, name string) (*appsv1.Deployment, error) {
+	deploy := &appsv1.Deployment{}
+	key := types.NamespacedName{Name: name, Namespace: namespace}
+
+	err := client.Get(context.Background(), key, deploy)
+	if err != nil {
+		return nil, err
+	}
+
+	return deploy, nil
+}
+
+func DeleteDeployment(client client.Client, namespace, name string) error {
+	deploy, err := getDeployment(client, namespace, name)
+	if err != nil {
+		if !errors.IsNotFound(err) {
+			return err
+		}
+
+		return nil
+	}
+
+	err = client.Delete(context.Background(), deploy)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func createPVC(client client.Client, pvc *corev1.PersistentVolumeClaim, namespace string) error {
+	pvc.Namespace = namespace
+
+	err := client.Create(context.Background(), pvc)
+	if err != nil {
+		if !errors.IsAlreadyExists(err) {
+			return err
+		}
+
+		util.Ctx.Log.Info("pvc " + pvc.Name + " already Exists")
+	}
+
+	return nil
+}
+
+func getPVC(client client.Client, namespace, name string) (*corev1.PersistentVolumeClaim, error) {
+	pvc := &corev1.PersistentVolumeClaim{}
+	key := types.NamespacedName{Name: name, Namespace: namespace}
+
+	err := client.Get(context.Background(), key, pvc)
+	if err != nil {
+		return nil, err
+	}
+
+	return pvc, nil
+}
+
+func DeletePVC(client client.Client, namespace, name string) error {
+	pvc, err := getPVC(client, namespace, name)
+	if err != nil {
+		if !errors.IsNotFound(err) {
+			return err
+		}
+
+		return nil
+	}
+
+	err = client.Delete(context.Background(), pvc)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func GetPVCFromFile() (*corev1.PersistentVolumeClaim, error) {
+	pvcFileName := "yamls/discoveredapps/pvc.yaml"
+
+	pvcFileContents, err := os.ReadFile(pvcFileName)
+	if err != nil {
+		err = fmt.Errorf("unable to load file %s: %w",
+			pvcFileName, err)
+
+		return nil, err
+	}
+
+	pvc := &corev1.PersistentVolumeClaim{}
+
+	err = yaml.Unmarshal(pvcFileContents, pvc)
+	if err != nil {
+		err = fmt.Errorf("unable to marshal file %s: %w",
+			pvcFileName, err)
+
+		return nil, err
+	}
+
+	return pvc, nil
+}
+
+func GetDeploymentFromFile() (*appsv1.Deployment, error) {
+	deployFileName := "yamls/discoveredapps/busybox-deployment.yaml"
+
+	deployFileContents, err := os.ReadFile(deployFileName)
+	if err != nil {
+		err = fmt.Errorf("unable to load file %s: %w",
+			deployFileName, err)
+
+		return nil, err
+	}
+
+	deploy := &appsv1.Deployment{}
+
+	err = yaml.Unmarshal(deployFileContents, deploy)
+	if err != nil {
+		err = fmt.Errorf("unable to marshal file %s: %w",
+			deployFileName, err)
+
+		return nil, err
+	}
+
+	return deploy, nil
+}
+
+func DeleteDiscoveredApps(client client.Client, namespace string) error {
+	pvc, err := GetPVCFromFile()
+	if err != nil {
+		return err
+	}
+
+	deploy, err := GetDeploymentFromFile()
+	if err != nil {
+		return err
+	}
+
+	if err = DeletePVC(client, namespace, pvc.Name); err != nil {
+		return err
+	}
+
+	return DeleteDeployment(client, namespace, deploy.Name)
 }

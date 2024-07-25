@@ -26,6 +26,10 @@ const (
 func EnableProtection(w workloads.Workload, d deployers.Deployer) error {
 	util.Ctx.Log.Info("enter EnableProtection " + w.GetName() + "/" + d.GetName())
 
+	if _, isDisoveredApps := d.(*deployers.DiscoveredApps); isDisoveredApps {
+		return EnableProtectionDiscoveredApps(w, d)
+	}
+
 	name := GetCombinedName(d, w)
 	namespace := name
 	// if isAppSet {
@@ -85,6 +89,10 @@ func EnableProtection(w workloads.Workload, d deployers.Deployer) error {
 func DisableProtection(w workloads.Workload, d deployers.Deployer) error {
 	util.Ctx.Log.Info("enter DRActions DisableProtection")
 
+	if _, isDisoveredApps := d.(*deployers.DiscoveredApps); isDisoveredApps {
+		return DisableProtectionDiscoveredApps(w, d)
+	}
+
 	name := GetCombinedName(d, w)
 	namespace := name
 	drpcName := name
@@ -105,6 +113,10 @@ func DisableProtection(w workloads.Workload, d deployers.Deployer) error {
 
 func Failover(w workloads.Workload, d deployers.Deployer) error {
 	util.Ctx.Log.Info("enter DRActions Failover")
+
+	if _, isDisoveredApps := d.(*deployers.DiscoveredApps); isDisoveredApps {
+		return FailoverDiscoveredApps(w, d)
+	}
 
 	name := GetCombinedName(d, w)
 	namespace := name
@@ -162,6 +174,10 @@ func Failover(w workloads.Workload, d deployers.Deployer) error {
 // Update DRPC
 func Relocate(w workloads.Workload, d deployers.Deployer) error {
 	util.Ctx.Log.Info("enter DRActions Relocate")
+
+	if _, isDisoveredApps := d.(*deployers.DiscoveredApps); isDisoveredApps {
+		return RelocateDiscoveredApps(w, d)
+	}
 
 	name := GetCombinedName(d, w)
 	namespace := name

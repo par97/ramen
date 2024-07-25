@@ -1,7 +1,7 @@
 ---
 channelname: "ramen-gitops"
 channelnamespace: "ramen-samples"
-giturl: "https://github.com/RamenDR/ocm-ramen-samples.git"
+giturl: "https://github.com/nirs/ocm-ramen-samples.git"
 pvcspecs:
   - storageclassname: rook-cephfs
     accessmodes: ReadWriteMany

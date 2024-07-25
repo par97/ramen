@@ -36,7 +36,7 @@ func (s Subscription) Deploy(w workloads.Workload) error {
 		return err
 	}
 
-	err = createManagedClusterSetBinding(McsbName, namespace)
+	err = CreateManagedClusterSetBinding(McsbName, namespace)
 	if err != nil {
 		return err
 	}
@@ -71,12 +71,12 @@ func (s Subscription) Undeploy(w workloads.Workload) error {
 		return err
 	}
 
-	err = deletePlacement(name, namespace)
+	err = DeletePlacement(name, namespace)
 	if err != nil {
 		return err
 	}
 
-	err = deleteManagedClusterSetBinding(McsbName, namespace)
+	err = DeleteManagedClusterSetBinding(McsbName, namespace)
 	if err != nil {
 		return err
 	}
