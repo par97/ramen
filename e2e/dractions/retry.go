@@ -13,6 +13,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	"open-cluster-management.io/api/cluster/v1beta1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	k8sclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 // nolint:gocognit
@@ -153,13 +154,13 @@ func getCurrentCluster(client client.Client, namespace string, placementName str
 }
 
 // return dr cluster client
-func getDRClusterClient(clusterName string, drpolicy *ramen.DRPolicy) client.Client {
-	if clusterName == drpolicy.Spec.DRClusters[0] {
-		return util.Ctx.C1.CtrlClient
-	}
+// func getDRClusterClient(clusterName string, drpolicy *ramen.DRPolicy) client.Client {
+// 	if clusterName == drpolicy.Spec.DRClusters[0] {
+// 		return util.Ctx.C1.CtrlClient
+// 	}
 
-	return util.Ctx.C2.CtrlClient
-}
+// 	return util.Ctx.C2.CtrlClient
+// }
 
 func getTargetCluster(client client.Client, namespace, placementName string, drpolicy *ramen.DRPolicy) (string, error) {
 	currentCluster, err := getCurrentCluster(client, namespace, placementName)
@@ -240,19 +241,19 @@ func waitDRPCProgression(client client.Client, namespace, name string, progressi
 	}
 }
 
-func getPlacementDecisionFromPlacement(ctrlClient client.Client, placement *v1beta1.Placement,
+func getPlacementDecisionFromPlacement(client client.Client, placement *v1beta1.Placement,
 ) (*v1beta1.PlacementDecision, error) {
 	matchLabels := map[string]string{
 		v1beta1.PlacementLabel: placement.GetName(),
 	}
 
-	listOptions := []client.ListOption{
-		client.InNamespace(placement.GetNamespace()),
-		client.MatchingLabels(matchLabels),
+	listOptions := []k8sclient.ListOption{
+		k8sclient.InNamespace(placement.GetNamespace()),
+		k8sclient.MatchingLabels(matchLabels),
 	}
 
 	plDecisions := &v1beta1.PlacementDecisionList{}
-	if err := ctrlClient.List(context.TODO(), plDecisions, listOptions...); err != nil {
+	if err := client.List(context.Background(), plDecisions, listOptions...); err != nil {
 		return nil, fmt.Errorf("failed to list PlacementDecisions (placement: %s)",
 			placement.GetNamespace()+"/"+placement.GetName())
 	}
